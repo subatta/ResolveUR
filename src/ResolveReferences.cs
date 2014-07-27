@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -19,31 +20,43 @@ namespace ReferenceResolution
 
             foreach (var projectFile in projectFiles)
             {
-                // list all references in project
-                XmlDocument projectXmlDocument;
-                var referenceNodesInProject = getReferenceNodes(projectFile, out projectXmlDocument);
-                var referenceNames = referenceNodesInProject
-                                        .OfType<XmlNode>()
-                                        .Select(x => x.Attributes[Include].Value);
-                foreach (var reference in referenceNames)
+                if (!File.Exists(projectFile))
+                    continue;
+
+                var projectXmlDocument = getXmlDocument(projectFile);
+                var itemGroups = getItemGroupNodes(projectXmlDocument);
+                var projectXmlDocumentToRestore = getXmlDocument(projectFile);
+
+                foreach (XmlNode item in itemGroups)
                 {
-                    var indexOfNodeToRemove = findNodeIndexByAttributeName(referenceNodesInProject, reference);
-                    if (indexOfNodeToRemove == -1)
+                    var referenceNodeNames = getReferenceNodeNames(item);
+                    if (referenceNodeNames == null || referenceNodeNames.Count == 0)
                         continue;
 
-                    var nodeToRemove = referenceNodesInProject[indexOfNodeToRemove];
-                    referenceNodesInProject[0].ParentNode.RemoveChild(nodeToRemove);
-                    projectXmlDocument.Save(projectFile);
-
-                    referenceNodesInProject = getReferenceNodes(projectFile, out projectXmlDocument);
-
-                    if (projectNeedsReference(projectFile))
+                    foreach (var reference in referenceNodeNames)
                     {
-                        var importedNode = referenceNodesInProject[0].OwnerDocument.ImportNode(nodeToRemove, true);
-                        referenceNodesInProject[0].ParentNode.AppendChild(importedNode);
+                        var indexOfNodeToRemove = findNodeIndexByAttributeName(item, reference);
+                        if (indexOfNodeToRemove == -1)
+                            continue;
+
+                        var nodeToRemove = item.ChildNodes[indexOfNodeToRemove];
+                        item.ChildNodes[0].ParentNode.RemoveChild(nodeToRemove);
                         projectXmlDocument.Save(projectFile);
+
+                        if (projectNeedsReference(projectFile))
+                        {
+                            // restore original
+                            projectXmlDocumentToRestore.Save(projectFile);
+                            itemGroups = getItemGroupNodes(projectXmlDocumentToRestore);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Project: {0} - Removed reference: {1}", projectFile, reference);
+                            projectXmlDocumentToRestore = getXmlDocument(projectFile);
+                        }
                     }
                 }
+
             }
         }
 
@@ -62,24 +75,52 @@ namespace ReferenceResolution
             {
                 if (!Path.IsPathRooted(projects[i]))
                     projects[i] = Path.Combine(Path.GetDirectoryName(solutionPath), projects[i]);
-                projects[i] = Path.GetFullPath(projects[i]);
+                try
+                {
+                    projects[i] = Path.GetFullPath(projects[i]);
+                }
+                catch (NotSupportedException ex)
+                {
+                    Console.WriteLine("Path: {0}, Error: {1}", projects[i], ex.Message);
+                }
             }
             return projects;
         }
 
-        private static XmlNodeList getReferenceNodes(string projectFile, out XmlDocument projectXmlDocument)
+        private static XmlDocument getXmlDocument(string projectFile)
         {
             var doc = new XmlDocument();
             doc.Load(projectFile);
-            projectXmlDocument = doc;
-            return doc.SelectNodes(@"//*[local-name()='Reference']");
+            return doc;
         }
 
-        private static int findNodeIndexByAttributeName(XmlNodeList nodeList, string attributeName)
+        private static XmlNodeList getItemGroupNodes(XmlDocument document)
         {
-            for (var i = 0; i < nodeList.Count; i++ )
+            const string ItemGroupXPath = @"//*[local-name()='ItemGroup']";
+            return document.SelectNodes(ItemGroupXPath);
+        }
+        
+        private static List<string> getReferenceNodeNames(XmlNode itemGroupNode)
+        {
+            const string Reference = "Reference";
+
+            if (itemGroupNode.ChildNodes.Count == 0)
+                return null;
+
+            if (itemGroupNode.ChildNodes[0].Name == Reference)
+                return itemGroupNode
+                            .ChildNodes
+                            .OfType<XmlNode>()
+                            .Select(x => x.Attributes[Include].Value)
+                            .ToList();
+            return null;
+        }
+
+        private static int findNodeIndexByAttributeName(XmlNode itemGroup, string attributeName)
+        {
+            for (var i = 0; i < itemGroup.ChildNodes.Count; i++)
             {
-                if (nodeList[i].Attributes[Include].Value == attributeName)
+                if (itemGroup.ChildNodes[i].Attributes[Include].Value == attributeName)
                     return i;
             }
             return -1;
@@ -96,7 +137,8 @@ namespace ReferenceResolution
             {
                 FileName = MsbuildExe,
                 Arguments = string.Format(CultureInfo.CurrentCulture, ArgumentsFormat, projectFile, LogFile),
-                CreateNoWindow = true
+                CreateNoWindow = true,
+                UseShellExecute = false
             };
 
             using (var exeProcess = Process.Start(startInfo))
@@ -105,11 +147,15 @@ namespace ReferenceResolution
             }
 
             // open build log to check for errors
-            var s = File.ReadAllText(LogFile);
-            File.Delete(LogFile);
+            if (File.Exists(LogFile))
+            {
+                var s = File.ReadAllText(LogFile);
+                File.Delete(LogFile);
 
-            // if we have a build error, the reference cannot be removed
-            return s.Contains(Error);
+                // if we have a build error, the reference cannot be removed
+                return s.Contains(Error);
+            }
+            return true;
         }
     }
 }
