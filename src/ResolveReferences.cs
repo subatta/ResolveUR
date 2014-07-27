@@ -1,38 +1,60 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml;
-using System.Xml.Linq;
 
-namespace ConsoleApplication1
+namespace ReferenceResolution
 {
-    class ResolveReferences
+    static class ResolveReferences
     {
+        private const string Include = "Include";
 
-        public void Resolve(string solutionPath)
+        public static void Resolve(string solutionPath)
         {
-            var projects = loadProjects(solutionPath);
-            foreach (var project in projects)
+            // get all project file full paths from solution file
+            var projectFiles = loadProjects(solutionPath);
+
+            foreach (var projectFile in projectFiles)
             {
-                var projectReferences = getReferenceInfo(project);
-                foreach (var reference in projectReferences)
+                // list all references in project
+                XmlDocument projectXmlDocument;
+                var referenceNodesInProject = getReferenceNodes(projectFile, out projectXmlDocument);
+                var referenceNames = referenceNodesInProject
+                                        .OfType<XmlNode>()
+                                        .Select(x => x.Attributes[Include].Value);
+                foreach (var reference in referenceNames)
                 {
-                    var removedNode = removeReference(project, reference.ReferenceInclude);
-                    if (isProjectNeedsReference(project))
-                        addReference(project, removedNode);
+                    var indexOfNodeToRemove = findNodeIndexByAttributeName(referenceNodesInProject, reference);
+                    if (indexOfNodeToRemove == -1)
+                        continue;
+
+                    var nodeToRemove = referenceNodesInProject[indexOfNodeToRemove];
+                    referenceNodesInProject[0].ParentNode.RemoveChild(nodeToRemove);
+                    projectXmlDocument.Save(projectFile);
+
+                    referenceNodesInProject = getReferenceNodes(projectFile, out projectXmlDocument);
+
+                    if (projectNeedsReference(projectFile))
+                    {
+                        var importedNode = referenceNodesInProject[0].OwnerDocument.ImportNode(nodeToRemove, true);
+                        referenceNodesInProject[0].ParentNode.AppendChild(importedNode);
+                        projectXmlDocument.Save(projectFile);
+                    }
                 }
             }
         }
 
-        private IEnumerable<string> loadProjects(string solutionPath)
+        private static IEnumerable<string> loadProjects(string solutionPath)
         {
+            const string ProjectRegEx = "Project\\(\"\\{[\\w-]*\\}\"\\) = \"([\\w _]*.*)\", \"(.*\\.(cs|vcx|vb)proj)\"";
             var content = File.ReadAllText(solutionPath);
-            var projReg = new Regex(
-                "Project\\(\"\\{[\\w-]*\\}\"\\) = \"([\\w _]*.*)\", \"(.*\\.(cs|vcx|vb)proj)\""
-                , RegexOptions.Compiled
+            var projReg = new Regex
+            (
+                ProjectRegEx,
+                RegexOptions.Compiled
             );
             var matches = projReg.Matches(content).Cast<Match>();
             var projects = matches.Select(x => x.Groups[2].Value).ToList();
@@ -45,103 +67,41 @@ namespace ConsoleApplication1
             return projects;
         }
 
-        private IEnumerable<ReferenceInfo> getReferenceInfo(string projectFile)
-        {
-            var fileName = projectFile;
-            var xDoc = XDocument.Load(fileName);
-            var ns = XNamespace.Get("http://schemas.microsoft.com/developer/msbuild/2003");
-
-            //References "By DLL (file)"
-            var list1 = (
-                            from list in xDoc.Descendants(ns + "ItemGroup")
-                            from item in list.Elements(ns + "Reference")
-                            /* where item.Element(ns + "HintPath") != null */
-                            /* optional */
-                            select new ReferenceInfo
-                            {
-                                CsProjFileName = fileName,
-                                ReferenceInclude = item.Attribute("Include").Value,
-                                RefType = (item.Element(ns + "HintPath") == null) ? "CompiledDLLInGac" : "CompiledDLL",
-                                HintPath = (item.Element(ns + "HintPath") == null) ? string.Empty : item.Element(ns + "HintPath").Value
-                            }
-                        ).ToList();
-
-            //References "By Project"
-            var list2 = (
-                            from list in xDoc.Descendants(ns + "ItemGroup")
-                            from item in list.Elements(ns + "ProjectReference")
-                            where item.Element(ns + "Project") != null
-                            select new ReferenceInfo
-                            {
-                                CsProjFileName = fileName,
-                                ReferenceInclude = item.Attribute("Include").Value,
-                                RefType = "ProjectReference",
-                                ProjectGuid = item.Element(ns + "Project").Value
-                            }
-                        ).ToList();
-
-            list1.AddRange(list2);
-
-            return list1;
-        }
-
-        private XmlNode removeReference(string projectFile, string reference)
+        private static XmlNodeList getReferenceNodes(string projectFile, out XmlDocument projectXmlDocument)
         {
             var doc = new XmlDocument();
             doc.Load(projectFile);
-            var nodes = doc.SelectNodes(@"//*[local-name()='Reference']");
-            XmlNode returnedNode = null;
-            for (var i = 0; i < nodes.Count; i++)
-            {
-                if (nodes[i].Attributes["Include"].Value == reference)
-                {
-                    returnedNode = nodes[i];
-                    nodes[i].ParentNode.RemoveChild(nodes[i]);
-                    break;
-                }
-            }
-            doc.Save(projectFile);
-            return returnedNode;
+            projectXmlDocument = doc;
+            return doc.SelectNodes(@"//*[local-name()='Reference']");
         }
 
-        private void addReference(string projectFile, XmlNode removedReferenceNode)
+        private static int findNodeIndexByAttributeName(XmlNodeList nodeList, string attributeName)
         {
-            var doc = new XmlDocument();
-            doc.Load(projectFile);
-            var nodes = doc.SelectNodes(@"//*[local-name()='ItemGroup']");
-            if (nodes.Count <= 0)
-                return;
-            // grab the itemgroup with Reference elements
-            for (var i = 0; i < nodes.Count; i++)
+            for (var i = 0; i < nodeList.Count; i++ )
             {
-                if (nodes[i].ChildNodes[0].Name == "Reference")
-                {
-                    var importedNode = nodes[i].OwnerDocument.ImportNode(removedReferenceNode, true);
-                    nodes[i].AppendChild(importedNode);
-                    break;
-                }
+                if (nodeList[i].Attributes[Include].Value == attributeName)
+                    return i;
             }
-            doc.Save(projectFile);
+            return -1;
         }
 
-        private bool isProjectNeedsReference(string project)
+        private static bool projectNeedsReference(string projectFile)
         {
             const string MsbuildExe = @"C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe";
             const string LogFile = "buildlog.txt";
-            var startInfo = new ProcessStartInfo();
-            startInfo.FileName = MsbuildExe;
-            startInfo.Arguments = project + " /clp:ErrorsOnly /m /flp:logfile=" + LogFile + ";Verbosity=Quiet";
+            const string ArgumentsFormat = "{0} /clp:ErrorsOnly /m /flp:logfile={1};Verbosity=Quiet";
+            const string Error = "error";
 
-            try
+            var startInfo = new ProcessStartInfo
             {
-                using (var exeProcess = Process.Start(startInfo))
-                {
-                    exeProcess.WaitForExit();
-                }
-            }
-            catch (Exception ex)
+                FileName = MsbuildExe,
+                Arguments = string.Format(CultureInfo.CurrentCulture, ArgumentsFormat, projectFile, LogFile),
+                CreateNoWindow = true
+            };
+
+            using (var exeProcess = Process.Start(startInfo))
             {
-                File.WriteAllText("err.txt", ex.Message);
+                exeProcess.WaitForExit();
             }
 
             // open build log to check for errors
@@ -149,20 +109,7 @@ namespace ConsoleApplication1
             File.Delete(LogFile);
 
             // if we have a build error, the reference cannot be removed
-            return s.Contains("error");
-        }
-
-        class ReferenceInfo
-        {
-            public string CsProjFileName;
-            public string ReferenceInclude;
-            public string RefType;
-            public string HintPath;
-            public string ProjectGuid;
-            public override string ToString()
-            {
-                return string.Format("{0},{1},{2}", CsProjFileName, ReferenceInclude, RefType);
-            }
+            return s.Contains(Error);
         }
     }
 }

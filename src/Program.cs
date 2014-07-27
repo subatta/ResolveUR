@@ -1,20 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿
 using System.IO;
-using System.Linq;
-using System.Xml;
-using System.Xml.Linq;
-using ConsoleApplication1;
 
-namespace ConsoleApplication1
+namespace ReferenceResolution
 {
     class ProjectReferences
     {
-        public static void Main()
+        public static void Main(string[] args)
         {
-            var c = new ResolveReferences();
-            c.Resolve(@"D:\Programming\CodeLib\ActiveProjects\KeePassMenu\KPM\KPM.sln");
+            if (args.Length != 1)
+                return;
+
+            if (!File.Exists(args[0]))
+                return;
+            
+            ResolveReferences.Resolve(args[0]);
         }
     }
 } // namespace
