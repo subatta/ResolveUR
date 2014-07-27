@@ -1,7 +1,7 @@
-Resolves project references for a Visual Studio Solution by removing unused references.
+Resolves project references for a Visual Studio Solution by <b>removing unused references</b> in each project of the solution.
 
-Done by removing a reference, building the project for errors and restoring removed reference if there was a build error.
+Done by removing a reference in a project, building project for errors and restoring the removed reference if there were build errors.
 
-Tested for few project types including website projects.
+Tested for few project types including console, windows, unit test and website project types.
 
-Usage: ReferenceResolution.exe [Path of solution]
+Usage at commandline: ReferenceResolution.exe [Path of solution file]
