@@ -7,13 +7,13 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml;
 
-namespace ReferenceResolution
+namespace ResolveUR
 {
-    static class ResolveReferences
+    static class ResolveUnusedReferences
     {
         private const string Include = "Include";
 
-        public static void Resolve(string solutionPath)
+        public static void Resolve(string solutionPath, string msbuildPath)
         {
             // get all project file full paths from solution file
             var projectFiles = loadProjects(solutionPath);
@@ -43,7 +43,7 @@ namespace ReferenceResolution
                         item.ChildNodes[0].ParentNode.RemoveChild(nodeToRemove);
                         projectXmlDocument.Save(projectFile);
 
-                        if (projectNeedsReference(projectFile))
+                        if (projectNeedsReference(projectFile, msbuildPath))
                         {
                             // restore original
                             projectXmlDocumentToRestore.Save(projectFile);
@@ -99,7 +99,7 @@ namespace ReferenceResolution
             const string ItemGroupXPath = @"//*[local-name()='ItemGroup']";
             return document.SelectNodes(ItemGroupXPath);
         }
-        
+
         private static List<string> getReferenceNodeNames(XmlNode itemGroupNode)
         {
             const string Reference = "Reference";
@@ -126,16 +126,15 @@ namespace ReferenceResolution
             return -1;
         }
 
-        private static bool projectNeedsReference(string projectFile)
+        private static bool projectNeedsReference(string projectFile, string msbuildPath)
         {
-            const string MsbuildExe = @"C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe";
             const string LogFile = "buildlog.txt";
             const string ArgumentsFormat = "{0} /clp:ErrorsOnly /m /flp:logfile={1};Verbosity=Quiet";
             const string Error = "error";
 
             var startInfo = new ProcessStartInfo
             {
-                FileName = MsbuildExe,
+                FileName = msbuildPath,
                 Arguments = string.Format(CultureInfo.CurrentCulture, ArgumentsFormat, projectFile, LogFile),
                 CreateNoWindow = true,
                 UseShellExecute = false
@@ -157,5 +156,6 @@ namespace ReferenceResolution
             }
             return true;
         }
+
     }
 }
