@@ -10,7 +10,7 @@ namespace ResolveUR
         public static void Main(string[] args)
         {
             // at least solution path is required
-            if (args.Length <= 1)
+            if (args.Length <= 0)
                 return;
 
             // 1st arg must be valid solution path 
@@ -19,7 +19,7 @@ namespace ResolveUR
             
             // 2nd arg can be platform - x86 or x64
             var platform = string.Empty;
-            if (args.Length >= 2 && args[1] == "x86" || args[1] == "x64")
+            if (args.Length >= 2 && (args[1] == "x86" || args[1] == "x64"))
                 platform = args[1];
 
             // preset msbuild path checking if it were present
