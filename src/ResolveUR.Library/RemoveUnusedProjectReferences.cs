@@ -4,41 +4,57 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Xml;
 
 namespace ResolveUR
 {
-    static class ResolveUnusedReferences
+    public class RemoveUnusedProjectReferences : IResolveUR
     {
+
         private const string Include = "Include";
 
-        public static void Resolve(string solutionPath, string msbuildPath)
-        {
-            // get all project file full paths from solution file
-            var projectFiles = loadProjects(solutionPath);
+        public event HasBuildErrorsEventHandler HasBuildErrorsEvent;
 
-            foreach (var projectFile in projectFiles)
-            {
-                if (!File.Exists(projectFile))
-                    continue;
-                resolveReferences(projectFile, msbuildPath, "Reference");
-                resolveReferences(projectFile, msbuildPath, "ProjectReference");
-            }
+        public string FilePath
+        {
+            get;
+            set;
+        }
+        public string BuilderPath
+        {
+            get;
+            set;
         }
 
-        private static void resolveReferences(string projectFile, string msbuildPath, string referenceType)
+        // returns false if there were build errors
+        public void Resolve()
         {
-            var projectXmlDocument = getXmlDocument(projectFile);
-            var projectXmlDocumentToRestore = getXmlDocument(projectFile);
+            if (resolve("Reference"))
+                resolve("ProjectReference");
+        }
+
+        private bool resolve(string referenceType)
+        {
+            // do nothing if project already has build errors
+            if (projectHasBuildErrors())
+            {
+                if (HasBuildErrorsEvent != null)
+                {
+                    HasBuildErrorsEvent(Path.GetFileNameWithoutExtension(FilePath));
+                }
+                return false;
+            }
+
+            var projectXmlDocument = getXmlDocument();
+            var projectXmlDocumentToRestore = getXmlDocument();
 
             var item = getReferenceGroupItem(projectXmlDocument, referenceType);
             if (item == null)
-                return;
+                return true;
 
             var referenceNodeNames = getReferenceNodeNames(item);
             if (referenceNodeNames == null || referenceNodeNames.Count == 0)
-                return;
+                return true;
 
             foreach (var reference in referenceNodeNames)
             {
@@ -46,68 +62,45 @@ namespace ResolveUR
                 if (nodeToRemove == null)
                     continue;
 
-                nodeToRemove.ParentNode.RemoveChild(nodeToRemove);
-                projectXmlDocument.Save(projectFile);
+                Console.WriteLine("Project: {0} - Attempting to remove reference: {1}", FilePath, reference);
 
-                if (projectNeedsReference(projectFile, msbuildPath))
+                nodeToRemove.ParentNode.RemoveChild(nodeToRemove);
+                projectXmlDocument.Save(FilePath);
+
+                if (projectHasBuildErrors())
                 {
+                    Console.WriteLine("Project: {0} - Restored reference: {1}", FilePath, reference);
                     // restore original
-                    projectXmlDocumentToRestore.Save(projectFile);
+                    projectXmlDocumentToRestore.Save(FilePath);
                     // reload item group from its doc
-                    projectXmlDocument = getXmlDocument(projectFile);
+                    projectXmlDocument = getXmlDocument();
                     item = getReferenceGroupItem(projectXmlDocument, referenceType);
                     if (item == null)
                         break;
                 }
                 else
                 {
-                    Console.WriteLine("Project: {0} - Removed reference: {1}", projectFile, reference);
-                    projectXmlDocumentToRestore = getXmlDocument(projectFile);
+                    Console.WriteLine("Project: {0} - Removed reference: {1}", FilePath, reference);
+                    projectXmlDocumentToRestore = getXmlDocument();
                 }
             }
-
-        }
-        private static IEnumerable<string> loadProjects(string solutionPath)
-        {
-            const string ProjectRegEx = "Project\\(\"\\{[\\w-]*\\}\"\\) = \"([\\w _]*.*)\", \"(.*\\.(cs|vcx|vb)proj)\"";
-            var content = File.ReadAllText(solutionPath);
-            var projReg = new Regex
-            (
-                ProjectRegEx,
-                RegexOptions.Compiled
-            );
-            var matches = projReg.Matches(content).Cast<Match>();
-            var projects = matches.Select(x => x.Groups[2].Value).ToList();
-            for (int i = 0; i < projects.Count; ++i)
-            {
-                if (!Path.IsPathRooted(projects[i]))
-                    projects[i] = Path.Combine(Path.GetDirectoryName(solutionPath), projects[i]);
-                try
-                {
-                    projects[i] = Path.GetFullPath(projects[i]);
-                }
-                catch (NotSupportedException ex)
-                {
-                    Console.WriteLine("Path: {0}, Error: {1}", projects[i], ex.Message);
-                }
-            }
-            return projects;
+            return true;
         }
 
-        private static XmlDocument getXmlDocument(string projectFile)
+        private XmlDocument getXmlDocument()
         {
             var doc = new XmlDocument();
-            doc.Load(projectFile);
+            doc.Load(FilePath);
             return doc;
         }
 
-        private static XmlNodeList getItemGroupNodes(XmlDocument document)
+        private XmlNodeList getItemGroupNodes(XmlDocument document)
         {
             const string ItemGroupXPath = @"//*[local-name()='ItemGroup']";
             return document.SelectNodes(ItemGroupXPath);
         }
 
-        private static XmlNode getReferenceGroupItem(XmlDocument doc, string referenceNodeName)
+        private XmlNode getReferenceGroupItem(XmlDocument doc, string referenceNodeName)
         {
             var itemGroups = getItemGroupNodes(doc);
 
@@ -124,11 +117,11 @@ namespace ResolveUR
                     return itemGroups[i];
                 }
             }
-            
+
             return null;
         }
 
-        private static List<string> getReferenceNodeNames(XmlNode itemGroupNode)
+        private List<string> getReferenceNodeNames(XmlNode itemGroupNode)
         {
             if (itemGroupNode.ChildNodes.Count == 0)
                 return null;
@@ -140,7 +133,7 @@ namespace ResolveUR
                         .ToList();
         }
 
-        private static XmlNode findNodeByAttributeName(XmlNode itemGroup, string attributeName)
+        private XmlNode findNodeByAttributeName(XmlNode itemGroup, string attributeName)
         {
             for (var i = 0; i < itemGroup.ChildNodes.Count; i++)
             {
@@ -153,7 +146,7 @@ namespace ResolveUR
             return null;
         }
 
-        private static bool projectNeedsReference(string projectFile, string msbuildPath)
+        private bool projectHasBuildErrors()
         {
             const string LogFile = "buildlog.txt";
             const string ArgumentsFormat = "{0} /clp:ErrorsOnly /nologo /m /flp:logfile={1};Verbosity=Quiet";
@@ -161,8 +154,8 @@ namespace ResolveUR
 
             var startInfo = new ProcessStartInfo
             {
-                FileName = msbuildPath,
-                Arguments = string.Format(CultureInfo.CurrentCulture, ArgumentsFormat, projectFile, LogFile),
+                FileName = BuilderPath,
+                Arguments = string.Format(CultureInfo.CurrentCulture, ArgumentsFormat, FilePath, LogFile),
                 CreateNoWindow = true,
                 UseShellExecute = false
             };
@@ -185,4 +178,5 @@ namespace ResolveUR
         }
 
     }
+
 }

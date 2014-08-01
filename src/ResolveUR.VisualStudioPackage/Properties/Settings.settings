@@ -1,0 +1,24 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="SreeEnterprises.ResolveURVisualStudioPackage.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="msbuildx8620" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">C:\Windows\Microsoft.Net\Framework\v2.0.50727\MSBuild.exe</Value>
+    </Setting>
+    <Setting Name="msbuildx8635" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">C:\Windows\Microsoft.Net\Framework\v3.5\MSBuild.exe</Value>
+    </Setting>
+    <Setting Name="msbuildx8640" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">C:\Windows\Microsoft.Net\Framework\v4.0.30319\MSBuild.exe</Value>
+    </Setting>
+    <Setting Name="msbuildx6420" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">C:\Windows\Microsoft.Net\Framework64\v2.0.50727\MSBuild.exe</Value>
+    </Setting>
+    <Setting Name="msbuildx6435" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">C:\Windows\Microsoft.Net\Framework64\v3.5\MSBuild.exe</Value>
+    </Setting>
+    <Setting Name="msbuildx6440" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">C:\Windows\Microsoft.Net\Framework64\v4.0.30319\MSBuild.exe</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

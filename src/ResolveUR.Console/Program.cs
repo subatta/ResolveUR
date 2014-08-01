@@ -31,7 +31,12 @@ namespace ResolveUR
             }
 
             // resolve
-            ResolveUnusedReferences.Resolve(args[0], msbuildPath);
+            var remover = new RemoveUnusedSolutionReferences
+            {
+                BuilderPath = msbuildPath,
+                FilePath = args[0]
+            };
+            remover.Resolve();
         }
 
 
