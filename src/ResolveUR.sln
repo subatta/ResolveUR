@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResolveUR.Console", "Resolv
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResolveUR.VisualStudioPackage", "ResolveUR.VisualStudioPackage\ResolveUR.VisualStudioPackage.csproj", "{43F08650-7B06-457B-BBC3-943EE478462D}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "ResolveUR.Setup", "ResolveUR.Setup\ResolveUR.Setup.vdproj", "{183555EC-6CC8-46E7-BF68-301CF338FC38}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,6 +31,8 @@ Global
 		{43F08650-7B06-457B-BBC3-943EE478462D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43F08650-7B06-457B-BBC3-943EE478462D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{43F08650-7B06-457B-BBC3-943EE478462D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{183555EC-6CC8-46E7-BF68-301CF338FC38}.Debug|Any CPU.ActiveCfg = Debug
+		{183555EC-6CC8-46E7-BF68-301CF338FC38}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

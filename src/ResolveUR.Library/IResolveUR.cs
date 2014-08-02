@@ -4,7 +4,7 @@ namespace ResolveUR
 {
     public delegate void HasBuildErrorsEventHandler(string projectName);
 
-    interface IResolveUR
+    public interface IResolveUR
     {
         event HasBuildErrorsEventHandler HasBuildErrorsEvent;
 

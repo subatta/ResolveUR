@@ -7,19 +7,25 @@ namespace ResolveUR
 {
     class ProjectReferences
     {
+        const string X86 = "x86";
+        const string X64 = "x64";
+
         public static void Main(string[] args)
         {
             // at least solution path is required
-            if (args.Length <= 0)
+            if (args == null || args.Length == 0)
                 return;
 
             // 1st arg must be valid solution path 
             if (!File.Exists(args[0]))
                 return;
-            
+
+            // a name, readable than args[0] ;-)
+            var filePath = args[0];
+
             // 2nd arg can be platform - x86 or x64
             var platform = string.Empty;
-            if (args.Length >= 2 && (args[1] == "x86" || args[1] == "x64"))
+            if (args.Length >= 2 && (args[1] == X86 || args[1] == X64))
                 platform = args[1];
 
             // preset msbuild path checking if it were present
@@ -30,13 +36,24 @@ namespace ResolveUR
                 return;
             }
 
-            // resolve
-            var remover = new RemoveUnusedSolutionReferences
+            // resolve for project or soluion
+            IResolveUR resolveur = null;
+            if (filePath.EndsWith(".proj"))
+                resolveur = new RemoveUnusedProjectReferences();
+            else if (filePath.EndsWith(".sln"))
+                resolveur = new RemoveUnusedSolutionReferences();
+
+            if (resolveur != null)
             {
-                BuilderPath = msbuildPath,
-                FilePath = args[0]
-            };
-            remover.Resolve();
+                resolveur.BuilderPath = msbuildPath;
+                resolveur.FilePath = filePath;
+
+                resolveur.Resolve();
+            }
+            else
+            {
+                Console.WriteLine("Unrecognized project or solution type");
+            }
         }
 
 
@@ -55,9 +72,9 @@ namespace ResolveUR
             }
             else
             {
-                if (platform == "x86")
+                if (platform == X86)
                     path = getValidPath(x86Keys);
-                else if (platform == "x64")
+                else if (platform == X64)
                     path = getValidPath(x64Keys);
             }
             return path;
