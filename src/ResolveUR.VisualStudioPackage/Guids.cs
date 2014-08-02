@@ -2,7 +2,7 @@
 // MUST match guids.h
 using System;
 
-namespace SreeEnterprises.ResolveURVisualStudioPackage
+namespace ResolveURVisualStudioPackage
 {
     static class GuidList
     {

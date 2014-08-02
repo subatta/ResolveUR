@@ -2,7 +2,7 @@
 // MUST match PkgCmdID.h
 using System;
 
-namespace SreeEnterprises.ResolveURVisualStudioPackage
+namespace ResolveURVisualStudioPackage
 {
     static class PkgCmdIDList
     {
