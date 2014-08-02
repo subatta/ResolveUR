@@ -1,5 +1,6 @@
 ResolveUR - Resolve Unused References
 -------------------------------------
+Update 8/1/2014: Visual studio extension is published at <a href="http://visualstudiogallery.msdn.microsoft.com/fe96c042-9a83-4fa2-921d-6b09aa044315">Visual Studio Gallery</a>
 
 Resolves project references for a Visual Studio Solution by <b>removing unused references</b> in each project of the solution.
 
@@ -16,6 +17,9 @@ Note: Path or platform arguments are without brackets
 
 ResolveUR.exe [Path of solution file]
 
-
 With platform also specified, x86 for example looks only x86 .net msbuild versions, highest first
 ResolveUR.exe [Path of solution file] [platform]
+
+Change History:
+---------------
+8/1/2014 - VSIX project added and extension published
