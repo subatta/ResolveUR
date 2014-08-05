@@ -38,7 +38,7 @@ namespace ResolveUR
 
             // resolve for project or soluion
             IResolveUR resolveur = null;
-            if (filePath.EndsWith(".proj"))
+            if (filePath.EndsWith("proj"))
                 resolveur = new RemoveUnusedProjectReferences();
             else if (filePath.EndsWith(".sln"))
                 resolveur = new RemoveUnusedSolutionReferences();

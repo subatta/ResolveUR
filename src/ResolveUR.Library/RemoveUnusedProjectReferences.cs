@@ -148,21 +148,25 @@ namespace ResolveUR
 
         private bool projectHasBuildErrors()
         {
-            const string LogFile = "buildlog.txt";
-            const string ArgumentsFormat = "{0} /clp:ErrorsOnly /nologo /m /flp:logfile={1};Verbosity=Quiet";
+            const string LogFileName = "buildlog.txt";
+            const string ArgumentsFormat = "\"{0}\" /clp:ErrorsOnly /nologo /m /flp:logfile={1};Verbosity=Quiet";
             const string Error = "error";
+
+            var tempPath = Path.GetTempPath();
+            var logFile = tempPath + @"\" + LogFileName;
 
             var startInfo = new ProcessStartInfo
             {
                 FileName = BuilderPath,
-                Arguments = string.Format(CultureInfo.CurrentCulture, ArgumentsFormat, FilePath, LogFile),
+                Arguments = string.Format(CultureInfo.CurrentCulture, ArgumentsFormat, FilePath, logFile),
                 CreateNoWindow = true,
-                UseShellExecute = false
+                UseShellExecute = false,
+                WorkingDirectory = tempPath
             };
 
             // clear build log file if it was left out for some reason
-            if (File.Exists(LogFile))
-                File.Delete(LogFile);
+            if (File.Exists(logFile))
+                File.Delete(logFile);
 
             using (var exeProcess = Process.Start(startInfo))
             {
@@ -170,10 +174,10 @@ namespace ResolveUR
             }
 
             // open build log to check for errors
-            if (File.Exists(LogFile))
+            if (File.Exists(logFile))
             {
-                var s = File.ReadAllText(LogFile);
-                File.Delete(LogFile);
+                var s = File.ReadAllText(logFile);
+                File.Delete(logFile);
 
                 // if we have a build error, the reference cannot be removed
                 return s.Contains(Error);
