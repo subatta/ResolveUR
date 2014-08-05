@@ -160,6 +160,10 @@ namespace ResolveUR
                 UseShellExecute = false
             };
 
+            // clear build log file if it was left out for some reason
+            if (File.Exists(LogFile))
+                File.Delete(LogFile);
+
             using (var exeProcess = Process.Start(startInfo))
             {
                 exeProcess.WaitForExit();
