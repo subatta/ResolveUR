@@ -4,16 +4,19 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml;
 
 namespace ResolveUR
 {
-    public class RemoveUnusedProjectReferences : IResolveUR
+
+    public class RemoveUnusedProjectReferences: IResolveUR
     {
 
         private const string Include = "Include";
 
         public event HasBuildErrorsEventHandler HasBuildErrorsEvent;
+        public event ProgressMessageEventHandler ProgressMessageEvent;
 
         public string FilePath
         {
@@ -45,44 +48,47 @@ namespace ResolveUR
                 return false;
             }
 
+            raiseProgressMessageEvent(string.Format("Resolving {0}s in {1}", referenceType, FilePath));
+
             var projectXmlDocument = getXmlDocument();
             var projectXmlDocumentToRestore = getXmlDocument();
 
-            var item = getReferenceGroupItem(projectXmlDocument, referenceType);
-            if (item == null)
-                return true;
-
-            var referenceNodeNames = getReferenceNodeNames(item);
-            if (referenceNodeNames == null || referenceNodeNames.Count == 0)
-                return true;
-
-            foreach (var reference in referenceNodeNames)
+            var itemIndex = 0;
+            var item = getReferenceGroupItem(projectXmlDocument, referenceType, itemIndex);
+            while (item != null)
             {
-                var nodeToRemove = findNodeByAttributeName(item, reference);
-                if (nodeToRemove == null)
+                var referenceNodeNames = getReferenceNodeNames(item);
+                if (referenceNodeNames == null || referenceNodeNames.Count() == 0)
                     continue;
 
-                Console.WriteLine("Project: {0} - Attempting to remove reference: {1}", FilePath, reference);
-
-                nodeToRemove.ParentNode.RemoveChild(nodeToRemove);
-                projectXmlDocument.Save(FilePath);
-
-                if (projectHasBuildErrors())
+                foreach (var reference in referenceNodeNames)
                 {
-                    Console.WriteLine("Project: {0} - Restored reference: {1}", FilePath, reference);
-                    // restore original
-                    projectXmlDocumentToRestore.Save(FilePath);
-                    // reload item group from its doc
-                    projectXmlDocument = getXmlDocument();
-                    item = getReferenceGroupItem(projectXmlDocument, referenceType);
-                    if (item == null)
-                        break;
+                    var nodeToRemove = findNodeByAttributeName(item, reference);
+                    if (nodeToRemove == null)
+                        continue;
+
+                    nodeToRemove.ParentNode.RemoveChild(nodeToRemove);
+                    projectXmlDocument.Save(FilePath);
+
+                    if (projectHasBuildErrors())
+                    {
+                        raiseProgressMessageEvent(string.Format("Keep: {0}", reference));
+                        // restore original
+                        projectXmlDocumentToRestore.Save(FilePath);
+                        // reload item group from its doc
+                        projectXmlDocument = getXmlDocument();
+                        item = getReferenceGroupItem(projectXmlDocument, referenceType, itemIndex); // prevents from using yield return?
+                        if (item == null)
+                            break;
+                    }
+                    else
+                    {
+                        raiseProgressMessageEvent(string.Format("Removed: {0}", reference));
+                        projectXmlDocumentToRestore = getXmlDocument();
+                    }
                 }
-                else
-                {
-                    Console.WriteLine("Project: {0} - Removed reference: {1}", FilePath, reference);
-                    projectXmlDocumentToRestore = getXmlDocument();
-                }
+
+                item = getReferenceGroupItem(projectXmlDocument, referenceType, ++itemIndex);
             }
             return true;
         }
@@ -100,14 +106,14 @@ namespace ResolveUR
             return document.SelectNodes(ItemGroupXPath);
         }
 
-        private XmlNode getReferenceGroupItem(XmlDocument doc, string referenceNodeName)
+        private XmlNode getReferenceGroupItem(XmlDocument document, string referenceNodeName, int startIndex)
         {
-            var itemGroups = getItemGroupNodes(doc);
+            var itemGroups = getItemGroupNodes(document);
 
             if (itemGroups == null || itemGroups.Count == 0)
                 return null;
 
-            for (int i = 0; i < itemGroups.Count; i++)
+            for (int i = startIndex; i < itemGroups.Count; i++)
             {
                 if (itemGroups[i].ChildNodes == null || itemGroups[i].ChildNodes.Count == 0)
                     return null;
@@ -121,12 +127,12 @@ namespace ResolveUR
             return null;
         }
 
-        private List<string> getReferenceNodeNames(XmlNode itemGroupNode)
+        private IEnumerable<string> getReferenceNodeNames(XmlNode itemGroup)
         {
-            if (itemGroupNode.ChildNodes.Count == 0)
+            if (itemGroup.ChildNodes.Count == 0)
                 return null;
 
-            return itemGroupNode
+            return itemGroup
                         .ChildNodes
                         .OfType<XmlNode>()
                         .Select(x => x.Attributes[Include].Value)
@@ -135,13 +141,10 @@ namespace ResolveUR
 
         private XmlNode findNodeByAttributeName(XmlNode itemGroup, string attributeName)
         {
-            for (var i = 0; i < itemGroup.ChildNodes.Count; i++)
+            foreach (XmlNode item in itemGroup.ChildNodes)
             {
-                if (itemGroup.ChildNodes[i].Attributes[Include].Value == attributeName)
-                {
-                    return itemGroup.ChildNodes[i];
-
-                }
+                if (item.Attributes[Include].Value == attributeName)
+                    return item;
             }
             return null;
         }
@@ -185,6 +188,11 @@ namespace ResolveUR
             return true;
         }
 
+        private void raiseProgressMessageEvent(string message)
+        {
+            if (ProgressMessageEvent != null)
+                ProgressMessageEvent(message);
+        }
     }
 
 }

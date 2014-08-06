@@ -10,6 +10,7 @@ namespace ResolveUR
     {
 
         public event HasBuildErrorsEventHandler HasBuildErrorsEvent;
+        public event ProgressMessageEventHandler ProgressMessageEvent;
 
         private IEnumerable<string> loadProjects(string solutionPath)
         {
@@ -32,7 +33,7 @@ namespace ResolveUR
                 }
                 catch (NotSupportedException ex)
                 {
-                    Console.WriteLine("Path: {0}, Error: {1}", projects[i], ex.Message);
+                    resolver_ProgressMessageEvent(string.Format("Path: {0}, Error: {1}", projects[i], ex.Message));
                 }
             }
             return projects;
@@ -61,6 +62,8 @@ namespace ResolveUR
                 BuilderPath = BuilderPath
             };
             resolver.HasBuildErrorsEvent += resolver_HasBuildErrorsEvent;
+            resolver.ProgressMessageEvent += resolver_ProgressMessageEvent;
+
             foreach (var projectFile in projectFiles)
             {
                 if (!File.Exists(projectFile))
@@ -68,7 +71,13 @@ namespace ResolveUR
 
                 resolver.FilePath = projectFile;
                 resolver.Resolve();
-            }            
+            }
+        }
+
+        void resolver_ProgressMessageEvent(string message)
+        {
+            if (ProgressMessageEvent != null)
+                ProgressMessageEvent(message);
         }
 
         // rethrow event

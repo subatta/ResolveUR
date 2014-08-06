@@ -4,6 +4,7 @@
 [Bb]in
 build
 Debug
+Release
 *.dll
 *.pdb
 *.user

@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using ResolveUR;
@@ -81,27 +83,15 @@ namespace ResolveURVisualStudioPackage
         /// </summary>
         private void ProjectMenuItemCallback(object sender, EventArgs e)
         {
-            var builderPath = findMsBuildPath();
-            if (string.IsNullOrWhiteSpace(builderPath))
-            {
-                showNoMsBuildFoundMessage();
-                return;
-            }
-
-            var activeProjects = (Array) (this.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE)) as EnvDTE80.DTE2).ActiveSolutionProjects;
-            if (activeProjects.Length <= 0)
-                return;
-
-            var project = (EnvDTE.Project)(activeProjects.GetValue(0));
-            var resolveur = new RemoveUnusedProjectReferences
-            {
-                BuilderPath = builderPath,
-                FilePath = project.FullName
-            };
-            resolveur.HasBuildErrorsEvent += resolveur_HasBuildErrorsEvent;
-            resolveur.Resolve();
+            handleCallBack(getProjectName);
         }
+
         private void SolutionMenuItemCallback(object sender, EventArgs e)
+        {
+            handleCallBack(getSolutionName);
+        }
+
+        private void handleCallBack(Func<string> activeFileNameGetter)
         {
             var builderPath = findMsBuildPath();
             if (string.IsNullOrWhiteSpace(builderPath))
@@ -110,22 +100,58 @@ namespace ResolveURVisualStudioPackage
                 return;
             }
 
+            var filePath = activeFileNameGetter();
+            if (string.IsNullOrEmpty(filePath))
+            {
+                resolveur_ProgressMessageEvent("Invalid file");
+                return;
+            }
+            var resolveur = getResolver(filePath);
+            if (resolveur != null)
+            {
+                resolveur.BuilderPath = builderPath;
+                resolveur.FilePath = filePath;
+                resolveur.HasBuildErrorsEvent += resolveur_HasBuildErrorsEvent;
+                resolveur.ProgressMessageEvent += resolveur_ProgressMessageEvent;
+                resolveur.Resolve();
+            }
+            else
+            {
+                resolveur_ProgressMessageEvent("Unrecognized project or solution type");
+            }
+        }
+        private IResolveUR getResolver(string filePath)
+        {
+            if (filePath.EndsWith("proj"))
+                return new RemoveUnusedProjectReferences();
+            else if (filePath.EndsWith(".sln"))
+                return new RemoveUnusedSolutionReferences();
+
+            return null;
+        }
+
+        private string getSolutionName()
+        {
             var solutionObject = (this.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE)) as EnvDTE80.DTE2).Solution;
             if (solutionObject == null)
-                return;
+                return string.Empty;
 
             var solution = solutionObject.Properties.Item(5).Value.ToString();
             if (!File.Exists(solution))
-                return;
-            var resolveur = new RemoveUnusedSolutionReferences
-            {
-                BuilderPath = builderPath,
-                FilePath = solution
-            };
-            resolveur.HasBuildErrorsEvent += resolveur_HasBuildErrorsEvent;
-            resolveur.Resolve();
+                return string.Empty;
+        
+            return solution;
         }
+        private string getProjectName()
+        {
+            var activeProjects = (Array)(this.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE)) as EnvDTE80.DTE2).ActiveSolutionProjects;
+            if (activeProjects == null || activeProjects.Length == 0)
+                return string.Empty;
 
+            var project = (EnvDTE.Project)(activeProjects.GetValue(0));
+
+            return project.FileName;
+        }
         private void resolveur_HasBuildErrorsEvent(string projectName)
         {
             showMessageBox
@@ -134,10 +160,34 @@ namespace ResolveURVisualStudioPackage
                 "Project " + projectName + " already has compile errors. Please ensure it has no build errors and retry removing references."
             );
         }
+        private void resolveur_ProgressMessageEvent(string message)
+        {
+            var window = (this.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE)) as EnvDTE80.DTE2).Windows.Item(EnvDTE.Constants.vsWindowKindOutput);
+            var outputWindow = (OutputWindow)window.Object;
+            OutputWindowPane outputWindowPane = null;
+
+            const string OutputWindowName = "Output";
+            for (uint i = 1; i <= outputWindow.OutputWindowPanes.Count; i++)
+            {
+                if (outputWindow.OutputWindowPanes.Item(i).Name.Equals(OutputWindowName, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    outputWindowPane = outputWindow.OutputWindowPanes.Item(i);
+                    break;
+                }
+            }
+
+            if (outputWindowPane == null)
+                outputWindowPane = outputWindow.OutputWindowPanes.Add(OutputWindowName);
+
+            outputWindow.ActivePane.OutputString(message);
+            outputWindow.ActivePane.OutputString(Environment.NewLine);
+            
+            Debug.WriteLine(message);
+        }
 
         private void showNoMsBuildFoundMessage()
         {
-            showMessageBox("MsBuild Exe not found", "MsBuild Executable required to compile project was not found on this machine. Aborting...");        
+            showMessageBox("MsBuild Exe not found", "MsBuild Executable required to compile project was not found on this machine. Aborting...");
         }
 
         private static string findMsBuildPath()

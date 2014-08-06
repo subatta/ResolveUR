@@ -47,13 +47,24 @@ namespace ResolveUR
             {
                 resolveur.BuilderPath = msbuildPath;
                 resolveur.FilePath = filePath;
-
+                resolveur.HasBuildErrorsEvent += resolveur_HasBuildErrorsEvent;
+                resolveur.ProgressMessageEvent += resolveur_ProgressMessageEvent;
                 resolveur.Resolve();
             }
             else
             {
                 Console.WriteLine("Unrecognized project or solution type");
             }
+        }
+
+        static void resolveur_ProgressMessageEvent(string message)
+        {
+            Console.WriteLine(message);
+        }
+
+        static void resolveur_HasBuildErrorsEvent(string projectName)
+        {
+            Console.WriteLine("{0} has build errors.", projectName);
         }
 
 
