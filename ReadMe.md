@@ -1,26 +1,41 @@
-ResolveUR - Resolve Unused References
--------------------------------------
-Update 8/1/2014: Visual studio extension is published at <a href="http://visualstudiogallery.msdn.microsoft.com/fe96c042-9a83-4fa2-921d-6b09aa044315">Visual Studio Gallery</a>
+<h2>ResolveUR - Resolve Unused References</h2>
+<hr />
+<p>
+    Update 8/1/2014: Visual studio extension is published at <a href="http://visualstudiogallery.msdn.microsoft.com/fe96c042-9a83-4fa2-921d-6b09aa044315">Visual Studio Gallery</a>
+</p>
+<p>
+    Update 8/2/2014: Visual studio console is published at <a href="http://visualstudiogallery.msdn.microsoft.com/faf25a06-0490-4eaf-82ab-c42b729a764e">Visual Studio Gallery</a>
+</p>
+<p>
+    Resolves project references for a Visual Studio Solution by <b>removing unused references</b> in each project of the solution.
+</p>
+<p>
+    This is done by removing a reference in a project, building project for errors and restoring removed reference if there were build errors.
+</p>
+<p>
+    Tested for few project types including console, windows, unit test and website project types.
+</p>
+<p>
+    Checks for MSBuild on local system in predetermined paths specified in app.config. As second argument, platform to build against can be specified.
+</p>
 
-Resolves project references for a Visual Studio Solution by <b>removing unused references</b> in each project of the solution.
+<h3>Usage at commandline</h3>
+<p>
+    With just path, looks for x64 .net v4.0 msbuild, then x64 v3.5, x64 v2.0, x86 v4.0, x86 v3.5, x86 v2.0
+    Note: Path or platform arguments are without brackets
+    <code>
+        ResolveUR.exe [Path of solution file]
+    </code>
+    With platform also specified, x86 for example looks only x86 .net msbuild versions, highest first
+    <code>
+        ResolveUR.exe [Path of solution file] [platform]
+    </code>
+</p>
 
-This is done by removing a reference in a project, building project for errors and restoring removed reference if there were build errors.
-
-Tested for few project types including console, windows, unit test and website project types.
-
-Checks for MSBuild on local system in predetermined paths specified in app.config. As second argument, platform to build against can be specified.
-
-Usage at commandline:
----------------------
-With just path, looks for x64 .net v4.0 msbuild, then x64 v3.5, x64 v2.0, x86 v4.0, x86 v3.5, x86 v2.0
-Note: Path or platform arguments are without brackets
-
-ResolveUR.exe [Path of solution file]
-
-With platform also specified, x86 for example looks only x86 .net msbuild versions, highest first
-ResolveUR.exe [Path of solution file] [platform]
-
-Change History:
----------------
-8/1/2014 - VSIX project added and extension published
-8/2/2014 - Added setup project to install console app
+<h3>Change History</h3>
+<ul>
+    <li>8/1/2014 - VSIX project added and extension published</li>
+    <li>8/2/2014 - Added setup project to install console app</li>
+    <li>8/5/2014 - Fixed couple of bugs and permissions issue</li>
+    <li>8/15/2014 - Remove nuget package references as well as folders</li>
+</ul>
