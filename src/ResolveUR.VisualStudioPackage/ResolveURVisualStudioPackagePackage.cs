@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using ResolveUR;
+using ResolveUR.Library;
 using ResolveURVisualStudioPackage.Properties;
 
 namespace ResolveURVisualStudioPackage

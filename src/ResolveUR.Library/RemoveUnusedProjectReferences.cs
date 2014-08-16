@@ -1,27 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Xml;
 
-namespace ResolveUR
+namespace ResolveUR.Library
 {
 
     public class RemoveUnusedProjectReferences: IResolveUR
     {
 
         private const string Include = "Include";
+        private const string Reference = "Reference";
+        private const string Project = "Project";
 
         public event HasBuildErrorsEventHandler HasBuildErrorsEvent;
         public event ProgressMessageEventHandler ProgressMessageEvent;
 
+        private PackageConfig _packageConfig = new PackageConfig();
+
+        private string _filePath;
         public string FilePath
         {
-            get;
-            set;
+            get
+            {
+                return _filePath;
+            }
+            set
+            {
+                _filePath = value;
+                var dirPath = Path.GetDirectoryName(_filePath);
+                _packageConfig.FilePath = value;
+                _packageConfig.PackageConfigPath = dirPath + "\\packages.config";
+            }
         }
         public string BuilderPath
         {
@@ -32,8 +44,9 @@ namespace ResolveUR
         // returns false if there were build errors
         public void Resolve()
         {
-            if (resolve("Reference"))
-                resolve("ProjectReference");
+            _packageConfig.LoadPackagesIfAny();
+            if (resolve(Reference))
+                resolve(Project + Reference);
         }
 
         private bool resolve(string referenceType)
@@ -54,16 +67,18 @@ namespace ResolveUR
             var projectXmlDocumentToRestore = getXmlDocument();
 
             var itemIndex = 0;
-            var item = getReferenceGroupItem(projectXmlDocument, referenceType, itemIndex);
+            var item = getReferenceGroupItemIn(projectXmlDocument, referenceType, itemIndex);
             while (item != null)
             {
-                var referenceNodeNames = getReferenceNodeNames(item);
+
+                // use string names to match up references, nodes will mess reference removal
+                var referenceNodeNames = getReferenceNodeNamesIn(item);
                 if (referenceNodeNames == null || referenceNodeNames.Count() == 0)
                     continue;
 
-                foreach (var reference in referenceNodeNames)
+                foreach (var referenceNodeName in referenceNodeNames)
                 {
-                    var nodeToRemove = findNodeByAttributeName(item, reference);
+                    var nodeToRemove = findNodeByAttributeName(item, referenceNodeName);
                     if (nodeToRemove == null)
                         continue;
 
@@ -72,24 +87,35 @@ namespace ResolveUR
 
                     if (projectHasBuildErrors())
                     {
-                        raiseProgressMessageEvent(string.Format("Keep: {0}", reference));
+                        raiseProgressMessageEvent(string.Format("\tKept: {0}", referenceNodeName));
+                        _packageConfig.CopyPackageToKeep(nodeToRemove);
+
                         // restore original
                         projectXmlDocumentToRestore.Save(FilePath);
-                        // reload item group from its doc
+                        // reload item group from doc
                         projectXmlDocument = getXmlDocument();
-                        item = getReferenceGroupItem(projectXmlDocument, referenceType, itemIndex); // prevents from using yield return?
+                        item = getReferenceGroupItemIn(projectXmlDocument, referenceType, itemIndex); // prevents from using yield return?
                         if (item == null)
                             break;
                     }
                     else
                     {
-                        raiseProgressMessageEvent(string.Format("Removed: {0}", reference));
+                        raiseProgressMessageEvent(string.Format("\tRemoved: {0}", referenceNodeName));
                         projectXmlDocumentToRestore = getXmlDocument();
+                        _packageConfig.RemoveUnusedPackage(nodeToRemove);
                     }
                 }
 
-                item = getReferenceGroupItem(projectXmlDocument, referenceType, ++itemIndex);
+                item = getReferenceGroupItemIn(projectXmlDocument, referenceType, ++itemIndex);
             }
+
+            projectXmlDocument = null;
+            projectXmlDocumentToRestore = null;
+
+            _packageConfig.UpdatePackageConfig();
+
+            raiseProgressMessageEvent("Done with " + FilePath);
+
             return true;
         }
 
@@ -100,15 +126,15 @@ namespace ResolveUR
             return doc;
         }
 
-        private XmlNodeList getItemGroupNodes(XmlDocument document)
+        private XmlNodeList getItemGroupNodesIn(XmlDocument document)
         {
             const string ItemGroupXPath = @"//*[local-name()='ItemGroup']";
             return document.SelectNodes(ItemGroupXPath);
         }
 
-        private XmlNode getReferenceGroupItem(XmlDocument document, string referenceNodeName, int startIndex)
+        private XmlNode getReferenceGroupItemIn(XmlDocument document, string referenceNodeName, int startIndex)
         {
-            var itemGroups = getItemGroupNodes(document);
+            var itemGroups = getItemGroupNodesIn(document);
 
             if (itemGroups == null || itemGroups.Count == 0)
                 return null;
@@ -127,7 +153,7 @@ namespace ResolveUR
             return null;
         }
 
-        private IEnumerable<string> getReferenceNodeNames(XmlNode itemGroup)
+        private IEnumerable<string> getReferenceNodeNamesIn(XmlNode itemGroup)
         {
             if (itemGroup.ChildNodes.Count == 0)
                 return null;
@@ -182,7 +208,7 @@ namespace ResolveUR
                 var s = File.ReadAllText(logFile);
                 File.Delete(logFile);
 
-                // if we have a build error, the reference cannot be removed
+                // if build error, the reference cannot be removed
                 return s.Contains(Error);
             }
             return true;

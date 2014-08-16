@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace ResolveUR
+namespace ResolveUR.Library
 {
     public class RemoveUnusedSolutionReferences: IResolveUR
     {

@@ -5,6 +5,8 @@ using System.IO;
 
 namespace ResolveUR
 {
+    using Library;
+
     class ProjectReferences
     {
         const string X86 = "x86";

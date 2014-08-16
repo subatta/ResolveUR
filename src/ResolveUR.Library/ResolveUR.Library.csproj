@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IResolveUR.cs" />
+    <Compile Include="PackageConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RemoveUnusedProjectReferences.cs" />
     <Compile Include="RemoveUnusedSolutionReferences.cs" />

@@ -1,6 +1,6 @@
 ﻿
 
-namespace ResolveUR
+namespace ResolveUR.Library
 {
     public delegate void HasBuildErrorsEventHandler(string projectName);
     public delegate void ProgressMessageEventHandler(string message);
