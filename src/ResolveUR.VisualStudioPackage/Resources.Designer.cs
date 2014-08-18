@@ -8,10 +8,10 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace ResolveURVisualStudioPackage {
-    using System;
-    
-    
+namespace ResolveURVisualStudioPackage
+{
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>

@@ -11,6 +11,8 @@ namespace ResolveUR.Library
 
         public event HasBuildErrorsEventHandler HasBuildErrorsEvent;
         public event ProgressMessageEventHandler ProgressMessageEvent;
+        public event ReferenceCountEventHandler ReferenceCountEvent;
+        public event EventHandler ItemGroupResolved;
 
         private IEnumerable<string> loadProjects(string solutionPath)
         {
@@ -52,26 +54,43 @@ namespace ResolveUR.Library
             set;
         }
 
+        private IResolveUR _resolveur;
         public void Resolve()
         {
             // get all project file full paths from solution file
             var projectFiles = loadProjects(FilePath);
 
-            var resolver = new RemoveUnusedProjectReferences
+            _resolveur = new RemoveUnusedProjectReferences
             {
                 BuilderPath = BuilderPath
             };
-            resolver.HasBuildErrorsEvent += resolver_HasBuildErrorsEvent;
-            resolver.ProgressMessageEvent += resolver_ProgressMessageEvent;
-
+            _resolveur.HasBuildErrorsEvent += resolver_HasBuildErrorsEvent;
+            _resolveur.ProgressMessageEvent += resolver_ProgressMessageEvent;
+            _resolveur.ReferenceCountEvent += _resolveur_ReferenceCountEvent;
+            _resolveur.ItemGroupResolved += _resolveur_ItemGroupResolved;
             foreach (var projectFile in projectFiles)
             {
+                if (_isCancel)
+                    break;
+
                 if (!File.Exists(projectFile))
                     continue;
 
-                resolver.FilePath = projectFile;
-                resolver.Resolve();
+                _resolveur.FilePath = projectFile;
+                _resolveur.Resolve();
             }
+        }
+
+        void _resolveur_ItemGroupResolved(object sender, EventArgs e)
+        {
+            if (ItemGroupResolved != null)
+                ItemGroupResolved(sender, e);
+        }
+
+        void _resolveur_ReferenceCountEvent(int count)
+        {
+            if (ReferenceCountEvent != null)
+                ReferenceCountEvent(count);
         }
 
         void resolver_ProgressMessageEvent(string message)
@@ -84,8 +103,18 @@ namespace ResolveUR.Library
         void resolver_HasBuildErrorsEvent(string projectName)
         {
             if (HasBuildErrorsEvent != null)
+            {
                 HasBuildErrorsEvent(projectName);
+                _isCancel = true;
+            }
         }
+
+        private bool _isCancel;
+        public void Cancel()
+        {
+            _isCancel = true;
+        }
+
     }
 
 }

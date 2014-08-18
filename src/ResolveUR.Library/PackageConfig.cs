@@ -58,6 +58,8 @@ namespace ResolveUR.Library
                 return;
 
             var hintPath = getHintPath(referenceNode);
+            if (string.IsNullOrWhiteSpace(hintPath))
+                return;
             foreach (var package in _packages)
             {
                 if (hintPath.Contains(package.Key) && !_packagesToKeep.Contains(package.Value))
@@ -93,11 +95,14 @@ namespace ResolveUR.Library
         }
         private string getHintPath(XmlNode referenceNode)
         {
-            return referenceNode
+            var node = referenceNode
                         .ChildNodes
                         .OfType<XmlNode>()
-                        .First(x => x.Name == "HintPath")
-                        .InnerXml;
+                        .FirstOrDefault(x => x.Name == "HintPath");
+            if (node == null)
+                return string.Empty;
+                        
+            return node.InnerXml;
         }
 
         public void UpdatePackageConfig()

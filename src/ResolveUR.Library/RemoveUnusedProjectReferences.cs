@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -17,6 +18,8 @@ namespace ResolveUR.Library
 
         public event HasBuildErrorsEventHandler HasBuildErrorsEvent;
         public event ProgressMessageEventHandler ProgressMessageEvent;
+        public event ReferenceCountEventHandler ReferenceCountEvent;
+        public event EventHandler ItemGroupResolved;
 
         private PackageConfig _packageConfig = new PackageConfig();
 
@@ -71,13 +74,22 @@ namespace ResolveUR.Library
             while (item != null)
             {
 
+                if (_isCancel)
+                    break;
+
                 // use string names to match up references, nodes will mess reference removal
                 var referenceNodeNames = getReferenceNodeNamesIn(item);
                 if (referenceNodeNames == null || referenceNodeNames.Count() == 0)
                     continue;
 
+                if (ReferenceCountEvent != null)
+                    ReferenceCountEvent(referenceNodeNames.Count());
+
                 foreach (var referenceNodeName in referenceNodeNames)
                 {
+                    if (_isCancel)
+                        break;
+
                     var nodeToRemove = findNodeByAttributeName(item, referenceNodeName);
                     if (nodeToRemove == null)
                         continue;
@@ -106,11 +118,18 @@ namespace ResolveUR.Library
                     }
                 }
 
+                if (ItemGroupResolved != null)
+                    ItemGroupResolved(null, null);
+
                 item = getReferenceGroupItemIn(projectXmlDocument, referenceType, ++itemIndex);
             }
 
             projectXmlDocument = null;
             projectXmlDocumentToRestore = null;
+
+
+            if (_isCancel)
+                return false;
 
             _packageConfig.UpdatePackageConfig();
 
@@ -218,6 +237,12 @@ namespace ResolveUR.Library
         {
             if (ProgressMessageEvent != null)
                 ProgressMessageEvent(message);
+        }
+
+        private bool _isCancel;
+        public void Cancel()
+        {
+            _isCancel = true;
         }
     }
 
