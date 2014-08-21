@@ -47,24 +47,21 @@ namespace ResolveUR.Library
         // returns false if there were build errors
         public void Resolve()
         {
+            // do nothing if project already has build errors
+            if (projectHasBuildErrors()) raiseBuildErrorsEvent();
+
             _packageConfig.LoadPackagesIfAny();
-            if (resolve(Reference))
-                resolve(Project + Reference);
+
+            resolve(Reference);
+
+            if (_isCancel) return;
+
+            resolve(Project + Reference);
         }
 
-        private bool resolve(string referenceType)
+        private void resolve(string referenceType)
         {
-            // do nothing if project already has build errors
-            if (projectHasBuildErrors())
-            {
-                if (HasBuildErrorsEvent != null)
-                {
-                    HasBuildErrorsEvent(Path.GetFileNameWithoutExtension(FilePath));
-                }
-                return false;
-            }
-
-            raiseProgressMessageEvent(string.Format("Resolving {0}s in {1}", referenceType, FilePath));
+            raiseProgressMessageEvent(string.Format("Resolving {0}s in {1}", referenceType, Path.GetFileName(FilePath)));
 
             var projectXmlDocument = getXmlDocument();
             var projectXmlDocumentToRestore = getXmlDocument();
@@ -74,25 +71,21 @@ namespace ResolveUR.Library
             while (item != null)
             {
 
-                if (_isCancel)
-                    break;
+                if (_isCancel) break;
 
-                // use string names to match up references, nodes will mess reference removal
+                // use string names to match up references, using nodes themselves will mess references
+                if (item.ChildNodes.Count == 0) continue;
+
                 var referenceNodeNames = getReferenceNodeNamesIn(item);
-                if (referenceNodeNames == null || referenceNodeNames.Count() == 0)
-                    continue;
 
-                if (ReferenceCountEvent != null)
-                    ReferenceCountEvent(referenceNodeNames.Count());
+                if (ReferenceCountEvent != null) ReferenceCountEvent(referenceNodeNames.Count());
 
                 foreach (var referenceNodeName in referenceNodeNames)
                 {
-                    if (_isCancel)
-                        break;
+                    if (_isCancel) break;
 
                     var nodeToRemove = findNodeByAttributeName(item, referenceNodeName);
-                    if (nodeToRemove == null)
-                        continue;
+                    if (nodeToRemove == null) continue;
 
                     nodeToRemove.ParentNode.RemoveChild(nodeToRemove);
                     projectXmlDocument.Save(FilePath);
@@ -107,8 +100,7 @@ namespace ResolveUR.Library
                         // reload item group from doc
                         projectXmlDocument = getXmlDocument();
                         item = getReferenceGroupItemIn(projectXmlDocument, referenceType, itemIndex); // prevents from using yield return?
-                        if (item == null)
-                            break;
+                        if (item == null) break;
                     }
                     else
                     {
@@ -118,8 +110,7 @@ namespace ResolveUR.Library
                     }
                 }
 
-                if (ItemGroupResolved != null)
-                    ItemGroupResolved(null, null);
+                raiseItemGroupResolvedEvent();
 
                 item = getReferenceGroupItemIn(projectXmlDocument, referenceType, ++itemIndex);
             }
@@ -127,15 +118,12 @@ namespace ResolveUR.Library
             projectXmlDocument = null;
             projectXmlDocumentToRestore = null;
 
-
-            if (_isCancel)
-                return false;
+            if (_isCancel) return;
 
             _packageConfig.UpdatePackageConfig();
 
-            raiseProgressMessageEvent("Done with " + FilePath);
+            raiseProgressMessageEvent("Done with: " + Path.GetFileName(FilePath));
 
-            return true;
         }
 
         private XmlDocument getXmlDocument()
@@ -155,18 +143,13 @@ namespace ResolveUR.Library
         {
             var itemGroups = getItemGroupNodesIn(document);
 
-            if (itemGroups == null || itemGroups.Count == 0)
-                return null;
+            if (itemGroups == null || itemGroups.Count == 0) return null;
 
             for (int i = startIndex; i < itemGroups.Count; i++)
             {
-                if (itemGroups[i].ChildNodes == null || itemGroups[i].ChildNodes.Count == 0)
-                    return null;
+                if (itemGroups[i].ChildNodes == null || itemGroups[i].ChildNodes.Count == 0) return null;
 
-                if (itemGroups[i].ChildNodes[0].Name == referenceNodeName)
-                {
-                    return itemGroups[i];
-                }
+                if (itemGroups[i].ChildNodes[0].Name == referenceNodeName) return itemGroups[i];
             }
 
             return null;
@@ -174,9 +157,6 @@ namespace ResolveUR.Library
 
         private IEnumerable<string> getReferenceNodeNamesIn(XmlNode itemGroup)
         {
-            if (itemGroup.ChildNodes.Count == 0)
-                return null;
-
             return itemGroup
                         .ChildNodes
                         .OfType<XmlNode>()
@@ -187,10 +167,8 @@ namespace ResolveUR.Library
         private XmlNode findNodeByAttributeName(XmlNode itemGroup, string attributeName)
         {
             foreach (XmlNode item in itemGroup.ChildNodes)
-            {
-                if (item.Attributes[Include].Value == attributeName)
-                    return item;
-            }
+                if (item.Attributes[Include].Value == attributeName) return item;
+
             return null;
         }
 
@@ -213,13 +191,10 @@ namespace ResolveUR.Library
             };
 
             // clear build log file if it was left out for some reason
-            if (File.Exists(logFile))
-                File.Delete(logFile);
+            if (File.Exists(logFile)) File.Delete(logFile);
 
             using (var exeProcess = Process.Start(startInfo))
-            {
                 exeProcess.WaitForExit();
-            }
 
             // open build log to check for errors
             if (File.Exists(logFile))
@@ -235,8 +210,17 @@ namespace ResolveUR.Library
 
         private void raiseProgressMessageEvent(string message)
         {
-            if (ProgressMessageEvent != null)
-                ProgressMessageEvent(message);
+            if (ProgressMessageEvent != null) ProgressMessageEvent(message);
+        }
+
+        private void raiseBuildErrorsEvent()
+        {
+            if (HasBuildErrorsEvent != null) HasBuildErrorsEvent(Path.GetFileNameWithoutExtension(FilePath));
+        }
+
+        private void raiseItemGroupResolvedEvent()
+        {
+            if (ItemGroupResolved != null) ItemGroupResolved(null, null);
         }
 
         private bool _isCancel;

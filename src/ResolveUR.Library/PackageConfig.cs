@@ -54,12 +54,10 @@ namespace ResolveUR.Library
 
         public void CopyPackageToKeep(XmlNode referenceNode)
         {
-            if (referenceNode.ChildNodes.Count == 0)
-                return;
+            if (referenceNode.ChildNodes.Count == 0) return;
 
             var hintPath = getHintPath(referenceNode);
-            if (string.IsNullOrWhiteSpace(hintPath))
-                return;
+            if (string.IsNullOrWhiteSpace(hintPath)) return;
             foreach (var package in _packages)
             {
                 if (hintPath.Contains(package.Key) && !_packagesToKeep.Contains(package.Value))
@@ -71,8 +69,7 @@ namespace ResolveUR.Library
         }
         public void RemoveUnusedPackage(XmlNode referenceNode)
         {
-            if (referenceNode.ChildNodes.Count == 0)
-                return;
+            if (referenceNode.ChildNodes.Count == 0) return;
 
             var hintPath = getHintPath(referenceNode);
             foreach (var package in _packages)
@@ -99,22 +96,19 @@ namespace ResolveUR.Library
                         .ChildNodes
                         .OfType<XmlNode>()
                         .FirstOrDefault(x => x.Name == "HintPath");
-            if (node == null)
-                return string.Empty;
+            if (node == null) return string.Empty;
                         
             return node.InnerXml;
         }
 
         public void UpdatePackageConfig()
         {
-            if (_packagesToKeep.Count == 0)
-                return;
+            if (_packagesToKeep.Count == 0) return;
 
             packageConfigDocument.DocumentElement.RemoveAll();
             foreach (var package in _packagesToKeep)
-            {
                 packageConfigDocument.DocumentElement.AppendChild(package);
-            }
+
             packageConfigDocument.Save(PackageConfigPath);
             _packagesToKeep.Clear();
         }

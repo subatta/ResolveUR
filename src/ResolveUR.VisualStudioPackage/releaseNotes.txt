@@ -1,0 +1,1 @@
+This release adds a progress dialog as well as removal of nuget references in conjunction with assembly references. Package folders are also deleted.

@@ -46,7 +46,6 @@ namespace ResolveURVisualStudioPackage
         }
 
 
-
         /////////////////////////////////////////////////////////////////////////////
         // Overridden Package Implementation
         #region Package Members
@@ -114,7 +113,9 @@ namespace ResolveURVisualStudioPackage
             }
 
             _resolveur = createResolver(filePath);
-            if (_resolveur != null)
+            if (_resolveur == null)
+                resolveur_ProgressMessageEvent("Unrecognized project or solution type");
+            else
             {
                 _helper.ResolveurCancelled += helper_ResolveurCancelled;
                 _resolveur.BuilderPath = builderPath;
@@ -124,10 +125,6 @@ namespace ResolveURVisualStudioPackage
                 _resolveur.ReferenceCountEvent += resolveur_ReferenceCountEvent;
                 _resolveur.ItemGroupResolved += resolveur_ItemGroupResolved;
                 _resolveur.Resolve();
-            }
-            else
-            {
-                resolveur_ProgressMessageEvent("Unrecognized project or solution type");
             }
 
             _helper.EndWaitDialog();
@@ -141,20 +138,17 @@ namespace ResolveURVisualStudioPackage
         private string getSolutionName()
         {
             var solutionObject = (this.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE)) as EnvDTE80.DTE2).Solution;
-            if (solutionObject == null)
-                return string.Empty;
+            if (solutionObject == null) return string.Empty;
 
             var solution = solutionObject.Properties.Item(5).Value.ToString();
-            if (!File.Exists(solution))
-                return string.Empty;
+            if (!File.Exists(solution)) return string.Empty;
         
             return solution;
         }
         private string getProjectName()
         {
             var activeProjects = (Array)(this.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE)) as EnvDTE80.DTE2).ActiveSolutionProjects;
-            if (activeProjects == null || activeProjects.Length == 0)
-                return string.Empty;
+            if (activeProjects == null || activeProjects.Length == 0) return string.Empty;
 
             var project = (EnvDTE.Project)(activeProjects.GetValue(0));
 
@@ -162,6 +156,7 @@ namespace ResolveURVisualStudioPackage
         }
 
         #region Resolveur Events
+
         private void resolveur_HasBuildErrorsEvent(string projectName)
         {
             _helper.ShowMessageBox
@@ -169,6 +164,7 @@ namespace ResolveURVisualStudioPackage
                 "Remove Unused References",
                 "Project " + projectName + " already has compile errors. Please ensure it has no build errors and retry removing references."
             );
+            _helper.EndWaitDialog();
         }
 
         private void resolveur_ProgressMessageEvent(string message)
@@ -196,18 +192,12 @@ namespace ResolveURVisualStudioPackage
 
         private static string findMsBuildPath()
         {
-            if (File.Exists(Settings.Default.msbuildx6440))
-                return Settings.Default.msbuildx6440;
-            if (File.Exists(Settings.Default.msbuildx8640))
-                return Settings.Default.msbuildx8640;
-            if (File.Exists(Settings.Default.msbuildx6435))
-                return Settings.Default.msbuildx6435;
-            if (File.Exists(Settings.Default.msbuildx8635))
-                return Settings.Default.msbuildx8635;
-            if (File.Exists(Settings.Default.msbuildx6420))
-                return Settings.Default.msbuildx6420;
-            if (File.Exists(Settings.Default.msbuildx8620))
-                return Settings.Default.msbuildx8620;
+            if (File.Exists(Settings.Default.msbuildx6440)) return Settings.Default.msbuildx6440;
+            if (File.Exists(Settings.Default.msbuildx8640)) return Settings.Default.msbuildx8640;
+            if (File.Exists(Settings.Default.msbuildx6435)) return Settings.Default.msbuildx6435;
+            if (File.Exists(Settings.Default.msbuildx8635)) return Settings.Default.msbuildx8635;
+            if (File.Exists(Settings.Default.msbuildx6420)) return Settings.Default.msbuildx6420;
+            if (File.Exists(Settings.Default.msbuildx8620)) return Settings.Default.msbuildx8620;
 
             return string.Empty;
         }
@@ -240,19 +230,15 @@ namespace ResolveURVisualStudioPackage
         {
             var dialogFactory = GetService(typeof(SVsThreadedWaitDialogFactory)) as IVsThreadedWaitDialogFactory;
             IVsThreadedWaitDialog2 progressDialog = null;
-            if (dialogFactory != null)
-            {
-                dialogFactory.CreateInstance(out progressDialog);
-            }
+            if (dialogFactory != null) dialogFactory.CreateInstance(out progressDialog);
+
             if (progressDialog != null && progressDialog.StartWaitDialog(
                     Constants.AppName + " Working...", "Visual Studio is busy. Cancel ResolveUR by clicking Cancel button",
                     string.Empty, null,
                     string.Empty,
                     0, true,
                     true) == Microsoft.VisualStudio.VSConstants.S_OK)
-            {
                 System.Threading.Thread.Sleep(1000);
-            }
 
             _helper.ProgressDialog = progressDialog;
 

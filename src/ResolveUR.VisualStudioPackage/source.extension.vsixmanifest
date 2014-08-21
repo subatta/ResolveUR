@@ -5,7 +5,7 @@
     <DisplayName>ResolveUR - Resolve Unused References</DisplayName>
     <Description xml:space="preserve">Resolve unused references including nuget references in Visual Studio 2012/2013 projects via menu item at solution and project nodes Solution Explorer Tool Window.</Description>
     <License>license.txt</License>
-    <ReleaseNotes>This release adds a progress dialog as well as removal of nuget references.</ReleaseNotes>
+    <ReleaseNotes>releaseNotes.txt</ReleaseNotes>
     <PreviewImage>remove_unused_refs.png</PreviewImage>
     <Tags>Remove, Unused References, nuget, references</Tags>
   </Metadata>

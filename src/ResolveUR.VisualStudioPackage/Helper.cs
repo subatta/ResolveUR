@@ -77,6 +77,7 @@ namespace ResolveURVisualStudioPackage
 
         public void ShowMessageBox(string title, string message)
         {
+            System.Threading.Thread.Sleep(1000);
             var clsid = Guid.Empty;
             int result;
             UiShell.ShowMessageBox(
@@ -117,28 +118,20 @@ namespace ResolveURVisualStudioPackage
                 false, 
                 out _dialogCancelled
             );
-            if (_dialogCancelled)
-            {
-                handleResolveurCancellation(_dialogCancelled);
-            }
+            if (_dialogCancelled) handleResolveurCancellation(_dialogCancelled);
         }
 
         public void EndWaitDialog()
         {
             int userCancelled;
             ProgressDialog.EndWaitDialog(out userCancelled);
-            if (userCancelled != 0)
-            {
-                handleResolveurCancellation(userCancelled != 0);
-            }
+            if (userCancelled != 0) handleResolveurCancellation(userCancelled != 0);
         }
 
         private void handleResolveurCancellation(bool userCancelled)
         {
-            if (ResolveurCancelled != null)
-                ResolveurCancelled(null, null);
-            if (userCancelled)
-                ShowMessageBox(Constants.AppName + " Status", "Cancelled");
+            if (ResolveurCancelled != null) ResolveurCancelled(null, null);
+            if (userCancelled) ShowMessageBox(Constants.AppName + " Status", "Cancelled");
         }
 
     }

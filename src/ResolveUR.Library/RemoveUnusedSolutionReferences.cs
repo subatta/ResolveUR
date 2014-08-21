@@ -27,8 +27,7 @@ namespace ResolveUR.Library
             var projects = matches.Select(x => x.Groups[2].Value).ToList();
             for (int i = 0; i < projects.Count; ++i)
             {
-                if (!Path.IsPathRooted(projects[i]))
-                    projects[i] = Path.Combine(Path.GetDirectoryName(solutionPath), projects[i]);
+                if (!Path.IsPathRooted(projects[i])) projects[i] = Path.Combine(Path.GetDirectoryName(solutionPath), projects[i]);
                 try
                 {
                     projects[i] = Path.GetFullPath(projects[i]);
@@ -70,11 +69,9 @@ namespace ResolveUR.Library
             _resolveur.ItemGroupResolved += _resolveur_ItemGroupResolved;
             foreach (var projectFile in projectFiles)
             {
-                if (_isCancel)
-                    break;
+                if (_isCancel) break;
 
-                if (!File.Exists(projectFile))
-                    continue;
+                if (!File.Exists(projectFile)) continue;
 
                 _resolveur.FilePath = projectFile;
                 _resolveur.Resolve();
@@ -83,20 +80,17 @@ namespace ResolveUR.Library
 
         void _resolveur_ItemGroupResolved(object sender, EventArgs e)
         {
-            if (ItemGroupResolved != null)
-                ItemGroupResolved(sender, e);
+            if (ItemGroupResolved != null) ItemGroupResolved(sender, e);
         }
 
         void _resolveur_ReferenceCountEvent(int count)
         {
-            if (ReferenceCountEvent != null)
-                ReferenceCountEvent(count);
+            if (ReferenceCountEvent != null) ReferenceCountEvent(count);
         }
 
         void resolver_ProgressMessageEvent(string message)
         {
-            if (ProgressMessageEvent != null)
-                ProgressMessageEvent(message);
+            if (ProgressMessageEvent != null) ProgressMessageEvent(message);
         }
 
         // rethrow event
