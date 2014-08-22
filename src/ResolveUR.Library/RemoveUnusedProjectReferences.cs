@@ -48,8 +48,11 @@ namespace ResolveUR.Library
         public void Resolve()
         {
             // do nothing if project already has build errors
-            if (projectHasBuildErrors()) raiseBuildErrorsEvent();
-
+            if (projectHasBuildErrors())
+            {
+                raiseBuildErrorsEvent();
+                return;
+            }
             _packageConfig.LoadPackagesIfAny();
 
             resolve(Reference);
