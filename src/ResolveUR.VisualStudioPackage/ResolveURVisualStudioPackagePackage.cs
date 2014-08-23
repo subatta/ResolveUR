@@ -94,6 +94,7 @@ namespace ResolveURVisualStudioPackage
 
         private void handleCallBack(Func<string> activeFileNameGetter)
         {
+            
             createOutputWindow();
             createProgressDialog();
             createUiShell();
@@ -118,12 +119,13 @@ namespace ResolveURVisualStudioPackage
             else
             {
                 _helper.ResolveurCancelled += helper_ResolveurCancelled;
+                _resolveur.IsResolvePackage = packageOption();
                 _resolveur.BuilderPath = builderPath;
                 _resolveur.FilePath = filePath;
                 _resolveur.HasBuildErrorsEvent += resolveur_HasBuildErrorsEvent;
                 _resolveur.ProgressMessageEvent += resolveur_ProgressMessageEvent;
                 _resolveur.ReferenceCountEvent += resolveur_ReferenceCountEvent;
-                _resolveur.ItemGroupResolved += resolveur_ItemGroupResolved;
+                _resolveur.ItemGroupResolvedEvent += resolveur_ItemGroupResolved;
                 _resolveur.Resolve();
             }
 
@@ -135,6 +137,12 @@ namespace ResolveURVisualStudioPackage
             _resolveur.Cancel();
         }
 
+        private bool packageOption()
+        {
+            var packageResolveOptionDialog = new PackageDialog();
+            packageResolveOptionDialog.ShowModal();
+            return packageResolveOptionDialog.IsResolvePackage;
+        }
         private string getSolutionName()
         {
             var solutionObject = (this.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE)) as EnvDTE80.DTE2).Solution;
@@ -161,7 +169,7 @@ namespace ResolveURVisualStudioPackage
         {
             _helper.ShowMessageBox
             (
-                "Remove Unused References",
+                "Resolve Unused References",
                 "Project " + projectName + " already has compile errors. Please ensure it has no build errors and retry removing references."
             );
             _helper.EndWaitDialog();

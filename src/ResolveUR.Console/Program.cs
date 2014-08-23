@@ -25,11 +25,16 @@ namespace ResolveUR
             // a name, readable than args[0] ;-)
             var filePath = args[0];
 
-            // 2nd arg can be platform - x86 or x64
-            var platform = string.Empty;
-            if (args.Length >= 2 && (args[1] == X86 || args[1] == X64))
-                platform = args[1];
+            // 2nd argument can be choice to resolve nuget packages or not.
+            var isResolvePackage = false;
+            if (args.Length >= 2 && (args[1] == "true"))
+                isResolvePackage = true;
 
+            // 3rd arg can be platform - x86 or x64
+            var platform = string.Empty;
+            if (args.Length >= 3 && (args[2] == X86 || args[2] == X64))
+                platform = args[2];
+            
             // preset msbuild path checking if it were present
             var msbuildPath = FindMsBuildPath(platform);
             if (string.IsNullOrWhiteSpace(msbuildPath))
@@ -47,6 +52,7 @@ namespace ResolveUR
 
             if (resolveur != null)
             {
+                resolveur.IsResolvePackage = isResolvePackage;
                 resolveur.BuilderPath = msbuildPath;
                 resolveur.FilePath = filePath;
                 resolveur.HasBuildErrorsEvent += resolveur_HasBuildErrorsEvent;

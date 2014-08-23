@@ -12,7 +12,7 @@ namespace ResolveUR.Library
         public event HasBuildErrorsEventHandler HasBuildErrorsEvent;
         public event ProgressMessageEventHandler ProgressMessageEvent;
         public event ReferenceCountEventHandler ReferenceCountEvent;
-        public event EventHandler ItemGroupResolved;
+        public event EventHandler ItemGroupResolvedEvent;
 
         private IEnumerable<string> loadProjects(string solutionPath)
         {
@@ -40,6 +40,11 @@ namespace ResolveUR.Library
             return projects;
         }
 
+        public bool IsResolvePackage
+        {
+            get;
+            set;
+        }
 
         public string BuilderPath
         {
@@ -66,7 +71,8 @@ namespace ResolveUR.Library
             _resolveur.HasBuildErrorsEvent += resolver_HasBuildErrorsEvent;
             _resolveur.ProgressMessageEvent += resolver_ProgressMessageEvent;
             _resolveur.ReferenceCountEvent += _resolveur_ReferenceCountEvent;
-            _resolveur.ItemGroupResolved += _resolveur_ItemGroupResolved;
+            _resolveur.ItemGroupResolvedEvent += _resolveur_ItemGroupResolved;
+            _resolveur.IsResolvePackage = IsResolvePackage;
             foreach (var projectFile in projectFiles)
             {
                 if (_isCancel) break;
@@ -80,7 +86,7 @@ namespace ResolveUR.Library
 
         void _resolveur_ItemGroupResolved(object sender, EventArgs e)
         {
-            if (ItemGroupResolved != null) ItemGroupResolved(sender, e);
+            if (ItemGroupResolvedEvent != null) ItemGroupResolvedEvent(sender, e);
         }
 
         void _resolveur_ReferenceCountEvent(int count)

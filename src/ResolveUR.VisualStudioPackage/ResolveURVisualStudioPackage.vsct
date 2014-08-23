@@ -68,7 +68,7 @@
         <Parent guid="guidResolveURVisualStudioPackageCmdSet" id="ResolveURProjectMenuGroup" />
         <Icon guid="guidImages" id="bmpPicX" />
         <Strings>
-          <ButtonText>Remove Unused References</ButtonText>
+          <ButtonText>Resolve Unused References</ButtonText>
         </Strings>
       </Button>
 
@@ -76,7 +76,7 @@
         <Parent guid="guidResolveURVisualStudioPackageCmdSet" id="ResolveURSolutionMenuGroup" />
         <Icon guid="guidImages" id="bmpPicX" />
         <Strings>
-          <ButtonText>Remove Unused References</ButtonText>
+          <ButtonText>Resolve Unused References</ButtonText>
         </Strings>
       </Button>
 

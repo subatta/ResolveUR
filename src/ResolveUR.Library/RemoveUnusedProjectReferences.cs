@@ -19,9 +19,10 @@ namespace ResolveUR.Library
         public event HasBuildErrorsEventHandler HasBuildErrorsEvent;
         public event ProgressMessageEventHandler ProgressMessageEvent;
         public event ReferenceCountEventHandler ReferenceCountEvent;
-        public event EventHandler ItemGroupResolved;
+        public event EventHandler ItemGroupResolvedEvent;
 
-        private PackageConfig _packageConfig = new PackageConfig();
+        private PackageConfig _packageConfig;
+
 
         private string _filePath;
         public string FilePath
@@ -34,11 +35,21 @@ namespace ResolveUR.Library
             {
                 _filePath = value;
                 var dirPath = Path.GetDirectoryName(_filePath);
-                _packageConfig.FilePath = value;
-                _packageConfig.PackageConfigPath = dirPath + "\\packages.config";
+                if (IsResolvePackage)
+                {
+                    _packageConfig = new PackageConfig();
+                    _packageConfig.FilePath = value;
+                    _packageConfig.PackageConfigPath = dirPath + "\\packages.config";
+                }
             }
         }
         public string BuilderPath
+        {
+            get;
+            set;
+        }
+
+        public bool IsResolvePackage
         {
             get;
             set;
@@ -53,7 +64,7 @@ namespace ResolveUR.Library
                 raiseBuildErrorsEvent();
                 return;
             }
-            _packageConfig.LoadPackagesIfAny();
+            if (IsResolvePackage) _packageConfig.LoadPackagesIfAny();
 
             resolve(Reference);
 
@@ -96,7 +107,7 @@ namespace ResolveUR.Library
                     if (projectHasBuildErrors())
                     {
                         raiseProgressMessageEvent(string.Format("\tKept: {0}", referenceNodeName));
-                        _packageConfig.CopyPackageToKeep(nodeToRemove);
+                        if (IsResolvePackage) _packageConfig.CopyPackageToKeep(nodeToRemove);
 
                         // restore original
                         projectXmlDocumentToRestore.Save(FilePath);
@@ -109,7 +120,7 @@ namespace ResolveUR.Library
                     {
                         raiseProgressMessageEvent(string.Format("\tRemoved: {0}", referenceNodeName));
                         projectXmlDocumentToRestore = getXmlDocument();
-                        _packageConfig.RemoveUnusedPackage(nodeToRemove);
+                        if (IsResolvePackage) _packageConfig.RemoveUnusedPackage(nodeToRemove);
                     }
                 }
 
@@ -123,7 +134,7 @@ namespace ResolveUR.Library
 
             if (_isCancel) return;
 
-            _packageConfig.UpdatePackageConfig();
+            if (IsResolvePackage) _packageConfig.UpdatePackageConfig();
 
             raiseProgressMessageEvent("Done with: " + Path.GetFileName(FilePath));
 
@@ -223,7 +234,7 @@ namespace ResolveUR.Library
 
         private void raiseItemGroupResolvedEvent()
         {
-            if (ItemGroupResolved != null) ItemGroupResolved(null, null);
+            if (ItemGroupResolvedEvent != null) ItemGroupResolvedEvent(null, null);
         }
 
         private bool _isCancel;
