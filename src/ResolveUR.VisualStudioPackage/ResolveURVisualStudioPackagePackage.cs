@@ -118,23 +118,19 @@ namespace ResolveURVisualStudioPackage
                 resolveur_ProgressMessageEvent("Unrecognized project or solution type");
             else
             {
-                _helper.ResolveurCancelled += helper_ResolveurCancelled;
+                _helper.ResolveurCanceled += helper_ResolveurCanceled;
                 _resolveur.IsResolvePackage = packageOption();
                 _resolveur.BuilderPath = builderPath;
                 _resolveur.FilePath = filePath;
                 _resolveur.HasBuildErrorsEvent += resolveur_HasBuildErrorsEvent;
                 _resolveur.ProgressMessageEvent += resolveur_ProgressMessageEvent;
                 _resolveur.ReferenceCountEvent += resolveur_ReferenceCountEvent;
-                _resolveur.ItemGroupResolvedEvent += resolveur_ItemGroupResolved;
+                _resolveur.ItemGroupResolvedEvent += resolveur_ItemGroupResolvedEvent;
+                _resolveur.PackageResolveProgressEvent += _resolveur_PackageResolveProgressEvent;
                 _resolveur.Resolve();
             }
 
             _helper.EndWaitDialog();
-        }
-
-        private void helper_ResolveurCancelled(object sender, EventArgs e)
-        {
-            _resolveur.Cancel();
         }
 
         private bool packageOption()
@@ -175,6 +171,16 @@ namespace ResolveURVisualStudioPackage
             _helper.EndWaitDialog();
         }
 
+        void _resolveur_PackageResolveProgressEvent(string message)
+        {
+            _helper.SetMessage(message);
+        }
+
+        private void helper_ResolveurCanceled(object sender, EventArgs e)
+        {
+            _resolveur.Cancel();
+        }
+
         private void resolveur_ProgressMessageEvent(string message)
         {
             if (message.Contains("Resolving"))
@@ -185,7 +191,7 @@ namespace ResolveURVisualStudioPackage
             _helper.SetMessage(message);
         }
 
-        private void resolveur_ItemGroupResolved(object sender, EventArgs e)
+        private void resolveur_ItemGroupResolvedEvent(object sender, EventArgs e)
         {
             _helper.CurrentReferenceCountInItemGroup = 0;
             _helper.ItemGroupCount++;
@@ -250,12 +256,12 @@ namespace ResolveURVisualStudioPackage
 
             _helper.ProgressDialog = progressDialog;
 
-            bool dialogCancelled;
-            progressDialog.HasCanceled(out dialogCancelled);
-            if (dialogCancelled)
+            bool dialogCanceled;
+            progressDialog.HasCanceled(out dialogCanceled);
+            if (dialogCanceled)
             {
                 _resolveur.Cancel();
-                _helper.ShowMessageBox(Constants.AppName + " Status", "Cancelled");
+                _helper.ShowMessageBox(Constants.AppName + " Status", "Canceled");
             }
         }
         private IResolveUR createResolver(string filePath)

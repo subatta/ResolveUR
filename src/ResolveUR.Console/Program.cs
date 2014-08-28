@@ -36,7 +36,7 @@ namespace ResolveUR
                 platform = args[2];
             
             // preset msbuild path checking if it were present
-            var msbuildPath = FindMsBuildPath(platform);
+            var msbuildPath = findMsBuildPath(platform);
             if (string.IsNullOrWhiteSpace(msbuildPath))
             {
                 Console.WriteLine("MsBuild Not found on system. Aborting...");
@@ -57,12 +57,18 @@ namespace ResolveUR
                 resolveur.FilePath = filePath;
                 resolveur.HasBuildErrorsEvent += resolveur_HasBuildErrorsEvent;
                 resolveur.ProgressMessageEvent += resolveur_ProgressMessageEvent;
+                resolveur.PackageResolveProgressEvent += resolveur_PackageResolveProgressEvent;
                 resolveur.Resolve();
             }
             else
             {
                 Console.WriteLine("Unrecognized project or solution type");
             }
+        }
+
+        static void resolveur_PackageResolveProgressEvent(string message)
+        {
+            Console.WriteLine(message);
         }
 
         static void resolveur_ProgressMessageEvent(string message)
@@ -76,7 +82,7 @@ namespace ResolveUR
         }
 
 
-        public static string FindMsBuildPath(string platform = "")
+        static string findMsBuildPath(string platform = "")
         {
             var x86Keys = new string[] { "msbuildx8640", "msbuildx8635", "msbuildx8620" };
             var x64Keys = new string[] { "msbuildx6440", "msbuildx6435", "msbuildx6420" };
@@ -105,7 +111,7 @@ namespace ResolveUR
         /// </summary>
         /// <param name="keys">x86 or x64 keys in config</param>
         /// <returns>a valid msbuild path, can be empty</returns>
-        private static string getValidPath(string[] keys)
+        static string getValidPath(string[] keys)
         {
             foreach (var key in keys)
             {
@@ -116,7 +122,7 @@ namespace ResolveUR
             return string.Empty;
         }
 
-        private static string readSetting(string key)
+        static string readSetting(string key)
         {
             try
             {

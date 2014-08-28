@@ -10,9 +10,9 @@ namespace ResolveURVisualStudioPackage
     class Helper: Package
     {
 
-        public event EventHandler ResolveurCancelled;
+        public event EventHandler ResolveurCanceled;
 
-        private bool _dialogCancelled;
+        private bool _dialogCanceled;
         private IVsThreadedWaitDialog2 _progressDialog = null;
         public IVsThreadedWaitDialog2 ProgressDialog
         {
@@ -116,22 +116,22 @@ namespace ResolveURVisualStudioPackage
                 ++CurrentReferenceCountInItemGroup, 
                 TotalReferenceCount, 
                 false, 
-                out _dialogCancelled
+                out _dialogCanceled
             );
-            if (_dialogCancelled) handleResolveurCancellation(_dialogCancelled);
+            if (_dialogCanceled) handleResolveurCancelation(_dialogCanceled);
         }
 
         public void EndWaitDialog()
         {
-            int userCancelled;
-            ProgressDialog.EndWaitDialog(out userCancelled);
-            if (userCancelled != 0) handleResolveurCancellation(userCancelled != 0);
+            int userCanceled;
+            ProgressDialog.EndWaitDialog(out userCanceled);
+            if (userCanceled != 0) handleResolveurCancelation(userCanceled != 0);
         }
 
-        private void handleResolveurCancellation(bool userCancelled)
+        private void handleResolveurCancelation(bool userCanceled)
         {
-            if (ResolveurCancelled != null) ResolveurCancelled(null, null);
-            if (userCancelled) ShowMessageBox(Constants.AppName + " Status", "Cancelled");
+            if (ResolveurCanceled != null) ResolveurCanceled(null, null);
+            if (userCanceled) ShowMessageBox(Constants.AppName + " Status", "Canceled");
         }
 
     }

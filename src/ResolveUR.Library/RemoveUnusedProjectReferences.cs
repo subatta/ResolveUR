@@ -20,6 +20,7 @@ namespace ResolveUR.Library
         public event ProgressMessageEventHandler ProgressMessageEvent;
         public event ReferenceCountEventHandler ReferenceCountEvent;
         public event EventHandler ItemGroupResolvedEvent;
+        public event PackageResolveProgressEventHandler PackageResolveProgressEvent;
 
         private PackageConfig _packageConfig;
 
@@ -135,6 +136,7 @@ namespace ResolveUR.Library
             if (_isCancel) return;
 
             if (IsResolvePackage) _packageConfig.UpdatePackageConfig();
+            raisePackageResolveProgressEvent("Packages resolved!");
 
             raiseProgressMessageEvent("Done with: " + Path.GetFileName(FilePath));
 
@@ -237,6 +239,10 @@ namespace ResolveUR.Library
             if (ItemGroupResolvedEvent != null) ItemGroupResolvedEvent(null, null);
         }
 
+        private void raisePackageResolveProgressEvent(string message)
+        {
+            if (PackageResolveProgressEvent != null) PackageResolveProgressEvent(message);
+        }
         private bool _isCancel;
         public void Cancel()
         {
