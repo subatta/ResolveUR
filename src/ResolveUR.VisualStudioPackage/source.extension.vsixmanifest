@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="637ba02c-3388-4e54-9051-3eea7c51b054" Version="2.1" Language="en-US" Publisher="Suresh Batta" />
+    <Identity Id="637ba02c-3388-4e54-9051-3eea7c51b054" Version="2.2" Language="en-US" Publisher="Suresh Batta" />
     <DisplayName>ResolveUR - Resolve Unused References</DisplayName>
     <Description xml:space="preserve">Resolve unused references including nuget references in Visual Studio 2012/2013 projects via menu item at solution and project nodes Solution Explorer Tool Window.</Description>
     <License>license.txt</License>

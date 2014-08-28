@@ -34,7 +34,7 @@
     group; your package should define its own command set in order to avoid collisions  
     with command ids defined by other packages. -->
 
-    
+
     <!-- In this section you can define new menu groups. A menu group is a container for 
          other menus or buttons (commands); from a visual point of view you can see the 
          group as the part of a menu contained between two lines. The parent of a group 
@@ -48,10 +48,10 @@
       <Group guid="guidResolveURVisualStudioPackageCmdSet" id="ResolveURSolutionMenuGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_SOLNNODE"/>
       </Group>
-      
+
 
     </Groups>
-    
+
     <!--Buttons section. -->
     <!--This section defines the elements the user can interact with, like a menu command or a button 
         or combo box in a toolbar. -->
@@ -81,7 +81,7 @@
       </Button>
 
     </Buttons>
-   
+
     <!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
     <Bitmaps>
       <!--  The bitmap id is defined in a way that is a little bit different from the others: 
@@ -90,9 +90,9 @@
             inside a button definition. An important aspect of this declaration is that the element id 
             must be the actual index (1-based) of the bitmap inside the bitmap strip. -->
       <Bitmap guid="guidImages" href="Resources\Images.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows"/>
-      
+
     </Bitmaps>
- 
+
   </Commands>
 
 
@@ -102,7 +102,7 @@
   <Symbols>
     <!-- This is the package guid. -->
     <GuidSymbol name="guidResolveURVisualStudioPackagePkg" value="{637ba02c-3388-4e54-9051-3eea7c51b054}" />
-    
+
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidResolveURVisualStudioPackageCmdSet" value="{f78e295d-0aa2-4310-b512-ef6c575b1442}">
 
@@ -111,9 +111,9 @@
       <IDSymbol name="ResolveURSolutionMenuGroup" value="0x1025" />
       <IDSymbol name="cmdRemoveUnusedSolutionReferences" value="0x0101" />
     </GuidSymbol>
-    
-    
-    
+
+
+
     <GuidSymbol name="guidImages" value="{525b26e5-424a-4558-817e-3ffc5f8cd9b2}" >
       <IDSymbol name="bmpPic1" value="1" />
       <IDSymbol name="bmpPic2" value="2" />
