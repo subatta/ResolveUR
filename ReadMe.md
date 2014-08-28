@@ -16,7 +16,7 @@
     Tested for few project types including console, windows, unit test and website project types.
 </p>
 <p>
-    Checks for MSBuild on local system in predetermined paths specified in app.config. As second argument, platform to build against can be specified.
+    Checks for MSBuild on local system in predetermined paths specified in app.config. In console app, platform to build against can be specified.
 </p>
 
 <h3>Usage at commandline</h3>
