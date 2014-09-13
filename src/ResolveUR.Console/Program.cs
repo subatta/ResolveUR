@@ -1,13 +1,13 @@
-﻿
-using System;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Configuration;
 using System.IO;
+using ResolveUR.Library;
 
 namespace ResolveUR
 {
-    using Library;
-
-    class ProjectReferences
+    internal class ProjectReferences
     {
         const string X86 = "x86";
         const string X64 = "x64";
@@ -23,20 +23,18 @@ namespace ResolveUR
                 return;
 
             // a name, readable than args[0] ;-)
-            var filePath = args[0];
+            string filePath = args[0];
 
             // 2nd argument can be choice to resolve nuget packages or not.
-            var isResolvePackage = false;
-            if (args.Length >= 2 && (args[1] == "true"))
-                isResolvePackage = true;
+            bool isResolvePackage = args.Length >= 2 && (args[1] == "true");
 
             // 3rd arg can be platform - x86 or x64
-            var platform = string.Empty;
+            string platform = string.Empty;
             if (args.Length >= 3 && (args[2] == X86 || args[2] == X64))
                 platform = args[2];
-            
+
             // preset msbuild path checking if it were present
-            var msbuildPath = findMsBuildPath(platform);
+            string msbuildPath = findMsBuildPath(platform);
             if (string.IsNullOrWhiteSpace(msbuildPath))
             {
                 Console.WriteLine("MsBuild Not found on system. Aborting...");
@@ -82,13 +80,13 @@ namespace ResolveUR
         }
 
 
-        static string findMsBuildPath(string platform = "")
+        static string findMsBuildPath(string platform)
         {
-            var x86Keys = new string[] { "msbuildx8640", "msbuildx8635", "msbuildx8620" };
-            var x64Keys = new string[] { "msbuildx6440", "msbuildx6435", "msbuildx6420" };
+            var x86Keys = new[] {"msbuildx8640", "msbuildx8635", "msbuildx8620"};
+            var x64Keys = new[] {"msbuildx6440", "msbuildx6435", "msbuildx6420"};
 
             // if user specified platform look by it
-            var path = string.Empty;
+            string path = string.Empty;
             if (string.IsNullOrWhiteSpace(platform))
             {
                 path = getValidPath(x64Keys);
@@ -106,16 +104,16 @@ namespace ResolveUR
         }
 
         /// <summary>
-        /// Reads msbuild platform-framework key values which are paths
-        /// and returns first valid one
+        ///     Reads msbuild platform-framework key values which are paths
+        ///     and returns first valid one
         /// </summary>
         /// <param name="keys">x86 or x64 keys in config</param>
         /// <returns>a valid msbuild path, can be empty</returns>
-        static string getValidPath(string[] keys)
+        static string getValidPath(IEnumerable<string> keys)
         {
-            foreach (var key in keys)
+            foreach (string key in keys)
             {
-                var path = readSetting(key);
+                string path = readSetting(key);
                 if (File.Exists(path))
                     return path;
             }
@@ -126,7 +124,7 @@ namespace ResolveUR
         {
             try
             {
-                var appSettings = ConfigurationManager.AppSettings;
+                NameValueCollection appSettings = ConfigurationManager.AppSettings;
                 return appSettings[key] ?? "Not Found";
             }
             catch (ConfigurationErrorsException)
@@ -135,6 +133,5 @@ namespace ResolveUR
                 return string.Empty;
             }
         }
-
     }
 } // namespace

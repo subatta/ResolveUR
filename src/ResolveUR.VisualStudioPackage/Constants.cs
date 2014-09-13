@@ -1,7 +1,6 @@
-﻿
-namespace ResolveURVisualStudioPackage
+﻿namespace ResolveURVisualStudioPackage
 {
-    class Constants
+    internal class Constants
     {
         public const string AppName = "ResolveUR";
     }

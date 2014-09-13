@@ -6,64 +6,26 @@ using System.Text.RegularExpressions;
 
 namespace ResolveUR.Library
 {
-    public class RemoveUnusedSolutionReferences: IResolveUR
+    public class RemoveUnusedSolutionReferences : IResolveUR
     {
-
+        bool _isCancel;
+        IResolveUR _resolveur;
         public event HasBuildErrorsEventHandler HasBuildErrorsEvent;
         public event ProgressMessageEventHandler ProgressMessageEvent;
         public event ReferenceCountEventHandler ReferenceCountEvent;
         public event EventHandler ItemGroupResolvedEvent;
         public event PackageResolveProgressEventHandler PackageResolveProgressEvent;
 
-        private IEnumerable<string> loadProjects(string solutionPath)
-        {
-            const string ProjectRegEx = "Project\\(\"\\{[\\w-]*\\}\"\\) = \"([\\w _]*.*)\", \"(.*\\.(cs|vcx|vb)proj)\"";
-            var content = File.ReadAllText(solutionPath);
-            var projReg = new Regex
-            (
-                ProjectRegEx,
-                RegexOptions.Compiled
-            );
-            var matches = projReg.Matches(content).Cast<Match>();
-            var projects = matches.Select(x => x.Groups[2].Value).ToList();
-            for (int i = 0; i < projects.Count; ++i)
-            {
-                if (!Path.IsPathRooted(projects[i])) projects[i] = Path.Combine(Path.GetDirectoryName(solutionPath), projects[i]);
-                try
-                {
-                    projects[i] = Path.GetFullPath(projects[i]);
-                }
-                catch (NotSupportedException ex)
-                {
-                    resolver_ProgressMessageEvent(string.Format("Path: {0}, Error: {1}", projects[i], ex.Message));
-                }
-            }
-            return projects;
-        }
+        public bool IsResolvePackage { get; set; }
 
-        public bool IsResolvePackage
-        {
-            get;
-            set;
-        }
+        public string BuilderPath { get; set; }
 
-        public string BuilderPath
-        {
-            get;
-            set;
-        }
+        public string FilePath { get; set; }
 
-        public string FilePath
-        {
-            get;
-            set;
-        }
-
-        private IResolveUR _resolveur;
         public void Resolve()
         {
             // get all project file full paths from solution file
-            var projectFiles = loadProjects(FilePath);
+            IEnumerable<string> projectFiles = loadProjects(FilePath);
 
             _resolveur = new RemoveUnusedProjectReferences
             {
@@ -75,7 +37,7 @@ namespace ResolveUR.Library
             _resolveur.ItemGroupResolvedEvent += _resolveur_ItemGroupResolvedEvent;
             _resolveur.PackageResolveProgressEvent += _resolveur_PackageResolveProgressEvent;
             _resolveur.IsResolvePackage = IsResolvePackage;
-            foreach (var projectFile in projectFiles)
+            foreach (string projectFile in projectFiles)
             {
                 if (_isCancel) break;
 
@@ -84,6 +46,41 @@ namespace ResolveUR.Library
                 _resolveur.FilePath = projectFile;
                 _resolveur.Resolve();
             }
+        }
+
+        public void Cancel()
+        {
+            _isCancel = true;
+        }
+
+        IEnumerable<string> loadProjects(string solutionPath)
+        {
+            const string ProjectRegEx = "Project\\(\"\\{[\\w-]*\\}\"\\) = \"([\\w _]*.*)\", \"(.*\\.(cs|vcx|vb)proj)\"";
+            string content = File.ReadAllText(solutionPath);
+            var projReg = new Regex
+                (
+                ProjectRegEx,
+                RegexOptions.Compiled
+                );
+            IEnumerable<Match> matches = projReg.Matches(content).Cast<Match>();
+            List<string> projects = matches.Select(x => x.Groups[2].Value).ToList();
+            for (int i = 0; i < projects.Count; ++i)
+            {
+                if (!Path.IsPathRooted(projects[i]))
+                {
+                    string folderName = Path.GetDirectoryName(solutionPath);
+                    if (folderName != null) projects[i] = Path.Combine(folderName, projects[i]);
+                }
+                try
+                {
+                    projects[i] = Path.GetFullPath(projects[i]);
+                }
+                catch (NotSupportedException ex)
+                {
+                    resolver_ProgressMessageEvent(string.Format("Path: {0}, Error: {1}", projects[i], ex.Message));
+                }
+            }
+            return projects;
         }
 
         void _resolveur_PackageResolveProgressEvent(string message)
@@ -115,13 +112,5 @@ namespace ResolveUR.Library
                 _isCancel = true;
             }
         }
-
-        private bool _isCancel;
-        public void Cancel()
-        {
-            _isCancel = true;
-        }
-
     }
-
 }

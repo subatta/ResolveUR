@@ -8,13 +8,14 @@ using System.Xml;
 
 namespace ResolveUR.Library
 {
-
-    public class RemoveUnusedProjectReferences: IResolveUR
+    public class RemoveUnusedProjectReferences : IResolveUR
     {
-
-        private const string Include = "Include";
-        private const string Reference = "Reference";
-        private const string Project = "Project";
+        const string Include = "Include";
+        const string Reference = "Reference";
+        const string Project = "Project";
+        string _filePath;
+        bool _isCancel;
+        PackageConfig _packageConfig;
 
         public event HasBuildErrorsEventHandler HasBuildErrorsEvent;
         public event ProgressMessageEventHandler ProgressMessageEvent;
@@ -22,39 +23,21 @@ namespace ResolveUR.Library
         public event EventHandler ItemGroupResolvedEvent;
         public event PackageResolveProgressEventHandler PackageResolveProgressEvent;
 
-        private PackageConfig _packageConfig;
-
-
-        private string _filePath;
         public string FilePath
         {
-            get
-            {
-                return _filePath;
-            }
+            get { return _filePath; }
             set
             {
                 _filePath = value;
-                var dirPath = Path.GetDirectoryName(_filePath);
-                if (IsResolvePackage)
-                {
-                    _packageConfig = new PackageConfig();
-                    _packageConfig.FilePath = value;
-                    _packageConfig.PackageConfigPath = dirPath + "\\packages.config";
-                }
+                string dirPath = Path.GetDirectoryName(_filePath);
+                if (!IsResolvePackage) return;
+                _packageConfig = new PackageConfig {FilePath = value, PackageConfigPath = dirPath + "\\packages.config"};
             }
         }
-        public string BuilderPath
-        {
-            get;
-            set;
-        }
 
-        public bool IsResolvePackage
-        {
-            get;
-            set;
-        }
+        public string BuilderPath { get; set; }
+
+        public bool IsResolvePackage { get; set; }
 
         // returns false if there were build errors
         public void Resolve()
@@ -74,35 +57,43 @@ namespace ResolveUR.Library
             resolve(Project + Reference);
         }
 
-        private void resolve(string referenceType)
+        public void Cancel()
+        {
+            _isCancel = true;
+        }
+
+        void resolve(string referenceType)
         {
             raiseProgressMessageEvent(string.Format("Resolving {0}s in {1}", referenceType, Path.GetFileName(FilePath)));
 
-            var projectXmlDocument = getXmlDocument();
-            var projectXmlDocumentToRestore = getXmlDocument();
+            XmlDocument projectXmlDocument = getXmlDocument();
+            XmlDocument projectXmlDocumentToRestore = getXmlDocument();
 
-            var itemIndex = 0;
-            var item = getReferenceGroupItemIn(projectXmlDocument, referenceType, itemIndex);
+            int itemIndex = 0;
+            XmlNode item = getReferenceGroupItemIn(projectXmlDocument, referenceType, itemIndex);
             while (item != null)
             {
-
                 if (_isCancel) break;
 
                 // use string names to match up references, using nodes themselves will mess references
                 if (item.ChildNodes.Count == 0) continue;
 
-                var referenceNodeNames = getReferenceNodeNamesIn(item);
+                IEnumerable<string> referenceNodeNames = getReferenceNodeNamesIn(item);
 
-                if (ReferenceCountEvent != null) ReferenceCountEvent(referenceNodeNames.Count());
+                IList<string> nodeNames = referenceNodeNames as IList<string> ?? referenceNodeNames.ToList();
+                if (ReferenceCountEvent != null) ReferenceCountEvent(nodeNames.Count());
 
-                foreach (var referenceNodeName in referenceNodeNames)
+                foreach (string referenceNodeName in nodeNames)
                 {
                     if (_isCancel) break;
 
-                    var nodeToRemove = findNodeByAttributeName(item, referenceNodeName);
+                    XmlNode nodeToRemove = findNodeByAttributeName(item, referenceNodeName);
                     if (nodeToRemove == null) continue;
 
+                    if (nodeToRemove.ParentNode == null) continue;
+
                     nodeToRemove.ParentNode.RemoveChild(nodeToRemove);
+
                     projectXmlDocument.Save(FilePath);
 
                     if (projectHasBuildErrors())
@@ -114,7 +105,8 @@ namespace ResolveUR.Library
                         projectXmlDocumentToRestore.Save(FilePath);
                         // reload item group from doc
                         projectXmlDocument = getXmlDocument();
-                        item = getReferenceGroupItemIn(projectXmlDocument, referenceType, itemIndex); // prevents from using yield return?
+                        item = getReferenceGroupItemIn(projectXmlDocument, referenceType, itemIndex);
+                        // prevents from using yield return?
                         if (item == null) break;
                     }
                     else
@@ -130,40 +122,36 @@ namespace ResolveUR.Library
                 item = getReferenceGroupItemIn(projectXmlDocument, referenceType, ++itemIndex);
             }
 
-            projectXmlDocument = null;
-            projectXmlDocumentToRestore = null;
-
             if (_isCancel) return;
 
             if (IsResolvePackage) _packageConfig.UpdatePackageConfig();
             raisePackageResolveProgressEvent("Packages resolved!");
 
             raiseProgressMessageEvent("Done with: " + Path.GetFileName(FilePath));
-
         }
 
-        private XmlDocument getXmlDocument()
+        XmlDocument getXmlDocument()
         {
             var doc = new XmlDocument();
             doc.Load(FilePath);
             return doc;
         }
 
-        private XmlNodeList getItemGroupNodesIn(XmlDocument document)
+        XmlNodeList getItemGroupNodesIn(XmlDocument document)
         {
             const string ItemGroupXPath = @"//*[local-name()='ItemGroup']";
             return document.SelectNodes(ItemGroupXPath);
         }
 
-        private XmlNode getReferenceGroupItemIn(XmlDocument document, string referenceNodeName, int startIndex)
+        XmlNode getReferenceGroupItemIn(XmlDocument document, string referenceNodeName, int startIndex)
         {
-            var itemGroups = getItemGroupNodesIn(document);
+            XmlNodeList itemGroups = getItemGroupNodesIn(document);
 
             if (itemGroups == null || itemGroups.Count == 0) return null;
 
             for (int i = startIndex; i < itemGroups.Count; i++)
             {
-                if (itemGroups[i].ChildNodes == null || itemGroups[i].ChildNodes.Count == 0) return null;
+                if (itemGroups[i].ChildNodes.Count == 0) return null;
 
                 if (itemGroups[i].ChildNodes[0].Name == referenceNodeName) return itemGroups[i];
             }
@@ -171,31 +159,36 @@ namespace ResolveUR.Library
             return null;
         }
 
-        private IEnumerable<string> getReferenceNodeNamesIn(XmlNode itemGroup)
+        IEnumerable<string> getReferenceNodeNamesIn(XmlNode itemGroup)
         {
             return itemGroup
-                        .ChildNodes
-                        .OfType<XmlNode>()
-                        .Select(x => x.Attributes[Include].Value)
-                        .ToList();
+                .ChildNodes
+                .OfType<XmlNode>()
+                .Select(x => x.Attributes != null ? x.Attributes[Include].Value : null)
+                .ToList();
         }
 
-        private XmlNode findNodeByAttributeName(XmlNode itemGroup, string attributeName)
+        XmlNode findNodeByAttributeName(XmlNode itemGroup, string attributeName)
         {
-            foreach (XmlNode item in itemGroup.ChildNodes)
-                if (item.Attributes[Include].Value == attributeName) return item;
-
-            return null;
+            return
+                itemGroup
+                    .ChildNodes
+                    .Cast<XmlNode>()
+                    .FirstOrDefault
+                    (
+                        item => item.Attributes != null
+                                && item.Attributes[Include].Value == attributeName
+                    );
         }
 
-        private bool projectHasBuildErrors()
+        bool projectHasBuildErrors()
         {
             const string LogFileName = "buildlog.txt";
             const string ArgumentsFormat = "\"{0}\" /clp:ErrorsOnly /nologo /m /flp:logfile={1};Verbosity=Quiet";
             const string Error = "error";
 
-            var tempPath = Path.GetTempPath();
-            var logFile = tempPath + @"\" + LogFileName;
+            string tempPath = Path.GetTempPath();
+            string logFile = tempPath + @"\" + LogFileName;
 
             var startInfo = new ProcessStartInfo
             {
@@ -209,13 +202,13 @@ namespace ResolveUR.Library
             // clear build log file if it was left out for some reason
             if (File.Exists(logFile)) File.Delete(logFile);
 
-            using (var exeProcess = Process.Start(startInfo))
-                exeProcess.WaitForExit();
+            using (Process exeProcess = Process.Start(startInfo))
+                if (exeProcess != null) exeProcess.WaitForExit();
 
             // open build log to check for errors
             if (File.Exists(logFile))
             {
-                var s = File.ReadAllText(logFile);
+                string s = File.ReadAllText(logFile);
                 File.Delete(logFile);
 
                 // if build error, the reference cannot be removed
@@ -224,30 +217,24 @@ namespace ResolveUR.Library
             return true;
         }
 
-        private void raiseProgressMessageEvent(string message)
+        void raiseProgressMessageEvent(string message)
         {
             if (ProgressMessageEvent != null) ProgressMessageEvent(message);
         }
 
-        private void raiseBuildErrorsEvent()
+        void raiseBuildErrorsEvent()
         {
             if (HasBuildErrorsEvent != null) HasBuildErrorsEvent(Path.GetFileNameWithoutExtension(FilePath));
         }
 
-        private void raiseItemGroupResolvedEvent()
+        void raiseItemGroupResolvedEvent()
         {
             if (ItemGroupResolvedEvent != null) ItemGroupResolvedEvent(null, null);
         }
 
-        private void raisePackageResolveProgressEvent(string message)
+        void raisePackageResolveProgressEvent(string message)
         {
             if (PackageResolveProgressEvent != null) PackageResolveProgressEvent(message);
         }
-        private bool _isCancel;
-        public void Cancel()
-        {
-            _isCancel = true;
-        }
     }
-
 }

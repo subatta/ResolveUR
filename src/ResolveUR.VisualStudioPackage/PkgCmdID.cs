@@ -3,11 +3,9 @@
 
 namespace ResolveURVisualStudioPackage
 {
-    static class PkgCmdIDList
+    internal static class PkgCmdIdList
     {
-        public const uint cmdRemoveUnusedProjectReferences = 0x100;
-        public const uint cmdRemoveUnusedSolutionReferences = 0x101;
-
-
+        public const uint CmdRemoveUnusedProjectReferences = 0x100;
+        public const uint CmdRemoveUnusedSolutionReferences = 0x101;
     };
 }
