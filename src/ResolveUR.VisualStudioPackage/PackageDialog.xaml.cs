@@ -1,7 +1,7 @@
-﻿using System.Windows;
-
-namespace ResolveURVisualStudioPackage
+﻿namespace ResolveURVisualStudioPackage
 {
+    using System.Windows;
+
     /// <summary>
     ///     Interaction logic for PackageDialog.xaml
     /// </summary>
@@ -14,13 +14,17 @@ namespace ResolveURVisualStudioPackage
 
         public bool IsResolvePackage { get; set; }
 
-        void btnYes_Click(object sender, RoutedEventArgs e)
+        private void btnYes_Click(
+            object sender,
+            RoutedEventArgs e)
         {
             IsResolvePackage = true;
             Close();
         }
 
-        void btnNo_Click(object sender, RoutedEventArgs e)
+        private void btnNo_Click(
+            object sender,
+            RoutedEventArgs e)
         {
             Close();
         }

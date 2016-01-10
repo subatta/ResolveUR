@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
-
-namespace ResolveUR.Library
+﻿namespace ResolveUR.Library
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Text.RegularExpressions;
+
     public class RemoveUnusedSolutionReferences : IResolveUR
     {
-        bool _isCancel;
-        IResolveUR _resolveur;
+        private bool _isCancel;
+        private IResolveUR _resolveur;
         public event HasBuildErrorsEventHandler HasBuildErrorsEvent;
         public event ProgressMessageEventHandler ProgressMessageEvent;
         public event ReferenceCountEventHandler ReferenceCountEvent;
@@ -25,7 +25,7 @@ namespace ResolveUR.Library
         public void Resolve()
         {
             // get all project file full paths from solution file
-            IEnumerable<string> projectFiles = loadProjects(FilePath);
+            var projectFiles = LoadProjects(FilePath);
 
             _resolveur = new RemoveUnusedProjectReferences
             {
@@ -37,11 +37,13 @@ namespace ResolveUR.Library
             _resolveur.ItemGroupResolvedEvent += _resolveur_ItemGroupResolvedEvent;
             _resolveur.PackageResolveProgressEvent += _resolveur_PackageResolveProgressEvent;
             _resolveur.IsResolvePackage = IsResolvePackage;
-            foreach (string projectFile in projectFiles)
+            foreach (var projectFile in projectFiles)
             {
-                if (_isCancel) break;
+                if (_isCancel)
+                    break;
 
-                if (!File.Exists(projectFile)) continue;
+                if (!File.Exists(projectFile))
+                    continue;
 
                 _resolveur.FilePath = projectFile;
                 _resolveur.Resolve();
@@ -53,23 +55,21 @@ namespace ResolveUR.Library
             _isCancel = true;
         }
 
-        IEnumerable<string> loadProjects(string solutionPath)
+        private IEnumerable<string> LoadProjects(
+            string solutionPath)
         {
-            const string ProjectRegEx = "Project\\(\"\\{[\\w-]*\\}\"\\) = \"([\\w _]*.*)\", \"(.*\\.(cs|vcx|vb)proj)\"";
-            string content = File.ReadAllText(solutionPath);
-            var projReg = new Regex
-                (
-                ProjectRegEx,
-                RegexOptions.Compiled
-                );
-            IEnumerable<Match> matches = projReg.Matches(content).Cast<Match>();
-            List<string> projects = matches.Select(x => x.Groups[2].Value).ToList();
-            for (int i = 0; i < projects.Count; ++i)
+            const string projectRegEx = "Project\\(\"\\{[\\w-]*\\}\"\\) = \"([\\w _]*.*)\", \"(.*\\.(cs|vcx|vb)proj)\"";
+            var content = File.ReadAllText(solutionPath);
+            var projReg = new Regex(projectRegEx, RegexOptions.Compiled);
+            var matches = projReg.Matches(content).Cast<Match>();
+            var projects = matches.Select(x => x.Groups[2].Value).ToList();
+            for (var i = 0; i < projects.Count; ++i)
             {
                 if (!Path.IsPathRooted(projects[i]))
                 {
-                    string folderName = Path.GetDirectoryName(solutionPath);
-                    if (folderName != null) projects[i] = Path.Combine(folderName, projects[i]);
+                    var folderName = Path.GetDirectoryName(solutionPath);
+                    if (folderName != null)
+                        projects[i] = Path.Combine(folderName, projects[i]);
                 }
                 try
                 {
@@ -77,34 +77,40 @@ namespace ResolveUR.Library
                 }
                 catch (NotSupportedException ex)
                 {
-                    resolver_ProgressMessageEvent(string.Format("Path: {0}, Error: {1}", projects[i], ex.Message));
+                    resolver_ProgressMessageEvent($"Path: {projects[i]}, Error: {ex.Message}");
                 }
             }
             return projects;
         }
 
-        void _resolveur_PackageResolveProgressEvent(string message)
+        private void _resolveur_PackageResolveProgressEvent(
+            string message)
         {
-            if (PackageResolveProgressEvent != null) PackageResolveProgressEvent(message);
+            PackageResolveProgressEvent?.Invoke(message);
         }
 
-        void _resolveur_ItemGroupResolvedEvent(object sender, EventArgs e)
+        private void _resolveur_ItemGroupResolvedEvent(
+            object sender,
+            EventArgs e)
         {
-            if (ItemGroupResolvedEvent != null) ItemGroupResolvedEvent(sender, e);
+            ItemGroupResolvedEvent?.Invoke(sender, e);
         }
 
-        void _resolveur_ReferenceCountEvent(int count)
+        private void _resolveur_ReferenceCountEvent(
+            int count)
         {
-            if (ReferenceCountEvent != null) ReferenceCountEvent(count);
+            ReferenceCountEvent?.Invoke(count);
         }
 
-        void resolver_ProgressMessageEvent(string message)
+        private void resolver_ProgressMessageEvent(
+            string message)
         {
-            if (ProgressMessageEvent != null) ProgressMessageEvent(message);
+            ProgressMessageEvent?.Invoke(message);
         }
 
         // rethrow event
-        void resolver_HasBuildErrorsEvent(string projectName)
+        private void resolver_HasBuildErrorsEvent(
+            string projectName)
         {
             if (HasBuildErrorsEvent != null)
             {

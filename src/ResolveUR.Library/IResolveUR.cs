@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace ResolveUR.Library
+﻿namespace ResolveUR.Library
 {
+    using System;
+
     public delegate void HasBuildErrorsEventHandler(string projectName);
 
     public delegate void ProgressMessageEventHandler(string message);

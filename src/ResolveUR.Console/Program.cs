@@ -1,18 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Configuration;
-using System.IO;
-using ResolveUR.Library;
-
-namespace ResolveUR
+﻿namespace ResolveUR
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Configuration;
+    using System.IO;
+    using Library;
+
     internal class ProjectReferences
     {
-        const string X86 = "x86";
-        const string X64 = "x64";
+        private const string X86 = "x86";
+        private const string X64 = "x64";
 
-        public static void Main(string[] args)
+        public static void Main(
+            string[] args)
         {
             // at least solution path is required
             if (args == null || args.Length == 0)
@@ -23,18 +23,18 @@ namespace ResolveUR
                 return;
 
             // a name, readable than args[0] ;-)
-            string filePath = args[0];
+            var filePath = args[0];
 
             // 2nd argument can be choice to resolve nuget packages or not.
-            bool isResolvePackage = args.Length >= 2 && (args[1] == "true");
+            var isResolvePackage = args.Length >= 2 && (args[1] == "true");
 
             // 3rd arg can be platform - x86 or x64
-            string platform = string.Empty;
+            var platform = string.Empty;
             if (args.Length >= 3 && (args[2] == X86 || args[2] == X64))
                 platform = args[2];
 
             // preset msbuild path checking if it were present
-            string msbuildPath = findMsBuildPath(platform);
+            var msbuildPath = FindMsBuildPath(platform);
             if (string.IsNullOrWhiteSpace(msbuildPath))
             {
                 Console.WriteLine("MsBuild Not found on system. Aborting...");
@@ -64,41 +64,51 @@ namespace ResolveUR
             }
         }
 
-        static void resolveur_PackageResolveProgressEvent(string message)
+        private static void resolveur_PackageResolveProgressEvent(
+            string message)
         {
             Console.WriteLine(message);
         }
 
-        static void resolveur_ProgressMessageEvent(string message)
+        private static void resolveur_ProgressMessageEvent(
+            string message)
         {
             Console.WriteLine(message);
         }
 
-        static void resolveur_HasBuildErrorsEvent(string projectName)
+        private static void resolveur_HasBuildErrorsEvent(
+            string projectName)
         {
             Console.WriteLine("{0} has build errors.", projectName);
         }
 
 
-        static string findMsBuildPath(string platform)
+        private static string FindMsBuildPath(
+            string platform)
         {
-            var x86Keys = new[] {"msbuildx8640", "msbuildx8635", "msbuildx8620"};
-            var x64Keys = new[] {"msbuildx6440", "msbuildx6435", "msbuildx6420"};
+            var x86Keys = new[]
+            {
+                "msbuildx86v14", "msbuildx86v12", "msbuildx8640", "msbuildx8635", "msbuildx8620"
+            };
+            var x64Keys = new[]
+            {
+                "msbuildx64v14", "msbuildx64v12", "msbuildx6440", "msbuildx6435", "msbuildx6420"
+            };
 
             // if user specified platform look by it
-            string path = string.Empty;
+            var path = string.Empty;
             if (string.IsNullOrWhiteSpace(platform))
             {
-                path = getValidPath(x64Keys);
+                path = GetValidPath(x64Keys);
                 if (string.IsNullOrEmpty(path))
-                    path = getValidPath(x86Keys);
+                    path = GetValidPath(x86Keys);
             }
             else
             {
                 if (platform == X86)
-                    path = getValidPath(x86Keys);
+                    path = GetValidPath(x86Keys);
                 else if (platform == X64)
-                    path = getValidPath(x64Keys);
+                    path = GetValidPath(x64Keys);
             }
             return path;
         }
@@ -109,22 +119,25 @@ namespace ResolveUR
         /// </summary>
         /// <param name="keys">x86 or x64 keys in config</param>
         /// <returns>a valid msbuild path, can be empty</returns>
-        static string getValidPath(IEnumerable<string> keys)
+        private static string GetValidPath(
+            IEnumerable<string> keys)
         {
-            foreach (string key in keys)
+            foreach (var key in keys)
             {
-                string path = readSetting(key);
+                var path = ReadSetting(key);
+                path += "MSBuild.exe";
                 if (File.Exists(path))
                     return path;
             }
             return string.Empty;
         }
 
-        static string readSetting(string key)
+        private static string ReadSetting(
+            string key)
         {
             try
             {
-                NameValueCollection appSettings = ConfigurationManager.AppSettings;
+                var appSettings = ConfigurationManager.AppSettings;
                 return appSettings[key] ?? "Not Found";
             }
             catch (ConfigurationErrorsException)

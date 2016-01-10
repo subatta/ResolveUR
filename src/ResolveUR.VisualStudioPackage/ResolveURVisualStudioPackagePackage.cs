@@ -1,20 +1,20 @@
-﻿using System;
-using System.ComponentModel.Design;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
-using System.Runtime.InteropServices;
-using EnvDTE;
-using EnvDTE80;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using ResolveUR.Library;
-using ResolveURVisualStudioPackage.Properties;
-using Thread = System.Threading.Thread;
-
-namespace ResolveURVisualStudioPackage
+﻿namespace ResolveURVisualStudioPackage
 {
+    using System;
+    using System.ComponentModel.Design;
+    using System.Diagnostics;
+    using System.Globalization;
+    using System.IO;
+    using System.Runtime.InteropServices;
+    using EnvDTE;
+    using EnvDTE80;
+    using Microsoft.VisualStudio;
+    using Microsoft.VisualStudio.Shell;
+    using Microsoft.VisualStudio.Shell.Interop;
+    using Properties;
+    using ResolveUR.Library;
+    using Thread = System.Threading.Thread;
+
     /// <summary>
     ///     is the class that implements the package exposed by assembly.
     ///     The minimum requirement for a class to be considered a valid package for Visual Studio
@@ -48,39 +48,6 @@ namespace ResolveURVisualStudioPackage
             Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", ToString()));
         }
 
-        #region Package Members
-
-        Helper _helper;
-        IResolveUR _resolveur;
-
-        /// <summary>
-        ///     Initialization of the package; method is called right after the package is sited, so is the place
-        ///     where you can put all the initialization code that rely on services provided by VisualStudio.
-        /// </summary>
-        protected override void Initialize()
-        {
-            Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", ToString()));
-            base.Initialize();
-
-            // Add our command handlers for menu (commands must exist in the .vsct file)
-            var mcs = GetService(typeof (IMenuCommandService)) as OleMenuCommandService;
-            if (null != mcs)
-            {
-                // Create the command for the menu item.
-                var menuCommandId = new CommandID(GuidList.GuidResolveUrVisualStudioPackageCmdSet,
-                    (int) PkgCmdIdList.CmdRemoveUnusedProjectReferences);
-                var menuItem = new MenuCommand(projectMenuItemCallback, menuCommandId);
-                mcs.AddCommand(menuItem);
-                menuCommandId = new CommandID(GuidList.GuidResolveUrVisualStudioPackageCmdSet,
-                    (int) PkgCmdIdList.CmdRemoveUnusedSolutionReferences);
-                menuItem = new MenuCommand(solutionMenuItemCallback, menuCommandId);
-                mcs.AddCommand(menuItem);
-                _helper = new Helper();
-            }
-        }
-
-        #endregion
-
         /////////////////////////////////////////////////////////////////////////////
         // Overridden Package Implementation
 
@@ -89,32 +56,38 @@ namespace ResolveURVisualStudioPackage
         ///     See the Initialize method to see how the menu item is associated to function using
         ///     the OleMenuCommandService service and the MenuCommand class.
         /// </summary>
-        void projectMenuItemCallback(object sender, EventArgs e)
+        private void ProjectMenuItemCallback(
+            object sender,
+            EventArgs e)
         {
-            handleCallBack(getProjectName);
+            HandleCallBack(GetProjectName);
         }
 
-        void solutionMenuItemCallback(object sender, EventArgs e)
+        private void SolutionMenuItemCallback(
+            object sender,
+            EventArgs e)
         {
-            handleCallBack(getSolutionName);
+            HandleCallBack(GetSolutionName);
         }
 
-        void handleCallBack(Func<string> activeFileNameGetter)
+        private void HandleCallBack(
+            Func<string> activeFileNameGetter)
         {
-            createOutputWindow();
-            createProgressDialog();
-            createUiShell();
+            CreateOutputWindow();
+            CreateProgressDialog();
+            CreateUiShell();
 
-            string builderPath = findMsBuildPath();
+            var builderPath = FindMsBuildPath();
             if (string.IsNullOrWhiteSpace(builderPath))
             {
-                _helper.ShowMessageBox("MsBuild Exe not found",
+                _helper.ShowMessageBox(
+                    "MsBuild Exe not found",
                     "MsBuild Executable required to compile project was not found on machine. Aborting...");
                 _helper.EndWaitDialog();
                 return;
             }
 
-            string filePath = activeFileNameGetter();
+            var filePath = activeFileNameGetter();
             if (string.IsNullOrEmpty(filePath))
             {
                 resolveur_ProgressMessageEvent("Invalid file");
@@ -141,47 +114,55 @@ namespace ResolveURVisualStudioPackage
             _helper.EndWaitDialog();
         }
 
-        bool packageOption()
+        private bool packageOption()
         {
             var packageResolveOptionDialog = new PackageDialog();
             packageResolveOptionDialog.ShowModal();
             return packageResolveOptionDialog.IsResolvePackage;
         }
 
-        string getSolutionName()
+        private string GetSolutionName()
         {
             var dte2 = GetService(typeof (SDTE)) as DTE2;
-            if (dte2 == null)
-                return string.Empty;
 
-            Solution solutionObject = dte2.Solution;
+            var solutionObject = dte2?.Solution;
             if (solutionObject == null)
                 return string.Empty;
 
-            string solution = solutionObject.Properties.Item(5).Value.ToString();
+            var solution = solutionObject.Properties.Item(5).Value.ToString();
             if (!File.Exists(solution))
                 return string.Empty;
 
             return solution;
         }
 
-        string getProjectName()
+        private string GetProjectName()
         {
             var dte2 = GetService(typeof (SDTE)) as DTE2;
-            if (dte2 == null)
-                return string.Empty;
 
-            var activeProjects = (Array) dte2.ActiveSolutionProjects;
+            var activeProjects = (Array) dte2?.ActiveSolutionProjects;
             if (activeProjects == null || activeProjects.Length == 0)
                 return string.Empty;
 
-            var project = (Project) (activeProjects.GetValue(0));
+            var project = (Project) activeProjects.GetValue(0);
 
             return project.FileName;
         }
 
-        static string findMsBuildPath()
+        private static string FindMsBuildPath()
         {
+            if (File.Exists(Settings.Default.msbuildx86v14))
+                return Settings.Default.msbuildx86v14;
+            if (File.Exists(Settings.Default.msbuildx64v14))
+                return Settings.Default.msbuildx64v14;
+            if (File.Exists(Settings.Default.msbuildx86v12))
+                return Settings.Default.msbuildx86v12;
+            if (File.Exists(Settings.Default.msbuildx64v12))
+                return Settings.Default.msbuildx64v12;
+            if (File.Exists(Settings.Default.msbuildx6440))
+                return Settings.Default.msbuildx6440;
+            if (File.Exists(Settings.Default.msbuildx6440))
+                return Settings.Default.msbuildx6440;
             if (File.Exists(Settings.Default.msbuildx6440))
                 return Settings.Default.msbuildx6440;
             if (File.Exists(Settings.Default.msbuildx8640))
@@ -198,22 +179,57 @@ namespace ResolveURVisualStudioPackage
             return string.Empty;
         }
 
+        #region Package Members
+
+        private Helper _helper;
+        private IResolveUR _resolveur;
+
+        /// <summary>
+        ///     Initialization of the package; method is called right after the package is sited, so is the place
+        ///     where you can put all the initialization code that rely on services provided by VisualStudio.
+        /// </summary>
+        protected override void Initialize()
+        {
+            Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", ToString()));
+            base.Initialize();
+
+            // Add our command handlers for menu (commands must exist in the .vsct file)
+            var mcs = GetService(typeof (IMenuCommandService)) as OleMenuCommandService;
+            if (null != mcs)
+            {
+                // Create the command for the menu item.
+                var menuCommandId = new CommandID(
+                    GuidList.GuidResolveUrVisualStudioPackageCmdSet,
+                    (int) PkgCmdIdList.CmdRemoveUnusedProjectReferences);
+                var menuItem = new MenuCommand(ProjectMenuItemCallback, menuCommandId);
+                mcs.AddCommand(menuItem);
+                menuCommandId = new CommandID(
+                    GuidList.GuidResolveUrVisualStudioPackageCmdSet,
+                    (int) PkgCmdIdList.CmdRemoveUnusedSolutionReferences);
+                menuItem = new MenuCommand(SolutionMenuItemCallback, menuCommandId);
+                mcs.AddCommand(menuItem);
+                _helper = new Helper();
+            }
+        }
+
+        #endregion
+
         #region Create memebers
 
-        void createOutputWindow()
+        private void CreateOutputWindow()
         {
             var dte2 = GetService(typeof (SDTE)) as DTE2;
             if (dte2 != null)
             {
-                Window window = dte2.Windows.Item(EnvDTE.Constants.vsWindowKindOutput);
+                var window = dte2.Windows.Item(EnvDTE.Constants.vsWindowKindOutput);
                 var outputWindow = (OutputWindow) window.Object;
                 OutputWindowPane outputWindowPane = null;
 
-                const string OutputWindowName = "Output";
+                const string outputWindowName = "Output";
                 for (uint i = 1; i <= outputWindow.OutputWindowPanes.Count; i++)
                 {
                     if (outputWindow.OutputWindowPanes.Item(i)
-                        .Name.Equals(OutputWindowName, StringComparison.CurrentCultureIgnoreCase))
+                        .Name.Equals(outputWindowName, StringComparison.CurrentCultureIgnoreCase))
                     {
                         outputWindowPane = outputWindow.OutputWindowPanes.Item(i);
                         break;
@@ -222,31 +238,35 @@ namespace ResolveURVisualStudioPackage
 
                 if (outputWindowPane == null)
                 {
-                    outputWindowPane = outputWindow.OutputWindowPanes.Add(OutputWindowName);
+                    outputWindowPane = outputWindow.OutputWindowPanes.Add(outputWindowName);
                     if (outputWindowPane != null)
                         _helper.OutputWindow = outputWindow;
                 }
             }
         }
 
-        void createProgressDialog()
+        private void CreateProgressDialog()
         {
             var dialogFactory = GetService(typeof (SVsThreadedWaitDialogFactory)) as IVsThreadedWaitDialogFactory;
             IVsThreadedWaitDialog2 progressDialog = null;
             if (dialogFactory != null)
                 dialogFactory.CreateInstance(out progressDialog);
 
-            if (progressDialog != null && progressDialog.StartWaitDialog(
-                Constants.AppName + " Working...", "Visual Studio is busy. Cancel ResolveUR by clicking Cancel button",
-                string.Empty, null,
-                string.Empty,
-                0, true,
-                true) == VSConstants.S_OK)
+            if (progressDialog != null &&
+                progressDialog.StartWaitDialog(
+                    Constants.AppName + " Working...",
+                    "Visual Studio is busy. Cancel ResolveUR by clicking Cancel button",
+                    string.Empty,
+                    null,
+                    string.Empty,
+                    0,
+                    true,
+                    true) == VSConstants.S_OK)
                 Thread.Sleep(1000);
 
             _helper.ProgressDialog = progressDialog;
 
-            bool dialogCanceled = false;
+            var dialogCanceled = false;
             if (progressDialog != null)
                 progressDialog.HasCanceled(out dialogCanceled);
             if (dialogCanceled)
@@ -256,18 +276,16 @@ namespace ResolveURVisualStudioPackage
             }
         }
 
-        IResolveUR createResolver(string filePath)
+        private IResolveUR createResolver(
+            string filePath)
         {
             if (filePath.EndsWith("proj"))
                 return new RemoveUnusedProjectReferences();
 
-            return
-                filePath.EndsWith(".sln")
-                    ? new RemoveUnusedSolutionReferences()
-                    : null;
+            return filePath.EndsWith(".sln") ? new RemoveUnusedSolutionReferences() : null;
         }
 
-        void createUiShell()
+        private void CreateUiShell()
         {
             _helper.UiShell = (IVsUIShell) GetService(typeof (SVsUIShell));
         }
@@ -276,28 +294,31 @@ namespace ResolveURVisualStudioPackage
 
         #region Resolveur Events
 
-        void resolveur_HasBuildErrorsEvent(string projectName)
+        private void resolveur_HasBuildErrorsEvent(
+            string projectName)
         {
-            _helper.ShowMessageBox
-                (
-                    "Resolve Unused References",
-                    "Project " + projectName +
-                    " already has compile errors. Please ensure it has no build errors and retry removing references."
-                );
+            _helper.ShowMessageBox(
+                "Resolve Unused References",
+                "Project " + projectName +
+                " already has compile errors. Please ensure it has no build errors and retry removing references.");
             _helper.EndWaitDialog();
         }
 
-        void _resolveur_PackageResolveProgressEvent(string message)
+        private void _resolveur_PackageResolveProgressEvent(
+            string message)
         {
             _helper.SetMessage(message);
         }
 
-        void helper_ResolveurCanceled(object sender, EventArgs e)
+        private void helper_ResolveurCanceled(
+            object sender,
+            EventArgs e)
         {
             _resolveur.Cancel();
         }
 
-        void resolveur_ProgressMessageEvent(string message)
+        private void resolveur_ProgressMessageEvent(
+            string message)
         {
             if (message.Contains("Resolving"))
             {
@@ -307,13 +328,16 @@ namespace ResolveURVisualStudioPackage
             _helper.SetMessage(message);
         }
 
-        void resolveur_ItemGroupResolvedEvent(object sender, EventArgs e)
+        private void resolveur_ItemGroupResolvedEvent(
+            object sender,
+            EventArgs e)
         {
             _helper.CurrentReferenceCountInItemGroup = 0;
             _helper.ItemGroupCount++;
         }
 
-        void resolveur_ReferenceCountEvent(int count)
+        private void resolveur_ReferenceCountEvent(
+            int count)
         {
             _helper.TotalReferenceCount = count;
         }

@@ -7,5 +7,5 @@ namespace ResolveURVisualStudioPackage
     {
         public const uint CmdRemoveUnusedProjectReferences = 0x100;
         public const uint CmdRemoveUnusedSolutionReferences = 0x101;
-    };
+    }
 }

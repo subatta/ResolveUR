@@ -1,16 +1,16 @@
-﻿using System;
-using System.Diagnostics;
-using System.Globalization;
-using EnvDTE;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Thread = System.Threading.Thread;
-
-namespace ResolveURVisualStudioPackage
+﻿namespace ResolveURVisualStudioPackage
 {
+    using System;
+    using System.Diagnostics;
+    using System.Globalization;
+    using EnvDTE;
+    using Microsoft.VisualStudio.Shell;
+    using Microsoft.VisualStudio.Shell.Interop;
+    using Thread = System.Threading.Thread;
+
     internal class Helper : Package
     {
-        bool _dialogCanceled;
+        private bool _dialogCanceled;
 
         public Helper()
         {
@@ -31,18 +31,18 @@ namespace ResolveURVisualStudioPackage
         public IVsUIShell UiShell { get; set; }
         public event EventHandler ResolveurCanceled;
 
-        public void ShowMessageBox(string title, string message)
+        public void ShowMessageBox(
+            string title,
+            string message)
         {
             Thread.Sleep(1000);
-            Guid clsid = Guid.Empty;
+            var clsid = Guid.Empty;
             int result;
             UiShell.ShowMessageBox(
                 0,
                 ref clsid,
                 title,
-                string.Format(CultureInfo.CurrentCulture,
-                    message,
-                    ToString()),
+                string.Format(CultureInfo.CurrentCulture, message, ToString()),
                 string.Empty,
                 0,
                 OLEMSGBUTTON.OLEMSGBUTTON_OK,
@@ -52,7 +52,8 @@ namespace ResolveURVisualStudioPackage
                 out result);
         }
 
-        public void SetMessage(string message)
+        public void SetMessage(
+            string message)
         {
             if (OutputWindow != null)
             {
@@ -62,32 +63,33 @@ namespace ResolveURVisualStudioPackage
 
             Debug.WriteLine(message);
 
-            ProgressDialog.UpdateProgress
-                (
-                    string.Empty,
-                    CurrentProject + Environment.NewLine +
-                    "Resolving Reference Group: " + ItemGroupCount + Environment.NewLine +
-                    message,
-                    message,
-                    ++CurrentReferenceCountInItemGroup,
-                    TotalReferenceCount,
-                    false,
-                    out _dialogCanceled
-                );
-            if (_dialogCanceled) handleResolveurCancelation(_dialogCanceled);
+            ProgressDialog.UpdateProgress(
+                string.Empty,
+                CurrentProject + Environment.NewLine + "Resolving Reference Group: " + ItemGroupCount +
+                Environment.NewLine + message,
+                message,
+                ++CurrentReferenceCountInItemGroup,
+                TotalReferenceCount,
+                false,
+                out _dialogCanceled);
+            if (_dialogCanceled)
+                HandleResolveurCancelation(_dialogCanceled);
         }
 
         public void EndWaitDialog()
         {
             int userCanceled;
             ProgressDialog.EndWaitDialog(out userCanceled);
-            if (userCanceled != 0) handleResolveurCancelation(userCanceled != 0);
+            if (userCanceled != 0)
+                HandleResolveurCancelation(userCanceled != 0);
         }
 
-        void handleResolveurCancelation(bool userCanceled)
+        private void HandleResolveurCancelation(
+            bool userCanceled)
         {
-            if (ResolveurCanceled != null) ResolveurCanceled(null, null);
-            if (userCanceled) ShowMessageBox(Constants.AppName + " Status", "Canceled");
+            ResolveurCanceled?.Invoke(null, null);
+            if (userCanceled)
+                ShowMessageBox(Constants.AppName + " Status", "Canceled");
         }
     }
 }

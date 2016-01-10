@@ -1,10 +1,10 @@
 ﻿// Guids.cs
 // MUST match guids.h
 
-using System;
-
 namespace ResolveURVisualStudioPackage
 {
+    using System;
+
     internal static class GuidList
     {
         public const string GuidResolveUrVisualStudioPackagePkgString = "637ba02c-3388-4e54-9051-3eea7c51b054";
