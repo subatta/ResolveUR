@@ -53,11 +53,17 @@
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>consolekey.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>ResolveUR.Program</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConsoleArgsResolveUR.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="MsBuildResolveUR.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -89,11 +95,6 @@
       <Project>{b9abfc6a-3bd4-4ef2-b9c5-63481f98c248}</Project>
       <Name>ResolveUR.Library</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="ReadMe.htm">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

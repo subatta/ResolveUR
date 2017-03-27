@@ -14,17 +14,13 @@
 
         public bool IsResolvePackage { get; set; }
 
-        private void btnYes_Click(
-            object sender,
-            RoutedEventArgs e)
+        void btnYes_Click(object sender, RoutedEventArgs e)
         {
             IsResolvePackage = true;
             Close();
         }
 
-        private void btnNo_Click(
-            object sender,
-            RoutedEventArgs e)
+        void btnNo_Click(object sender, RoutedEventArgs e)
         {
             Close();
         }

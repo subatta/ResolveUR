@@ -10,12 +10,12 @@
 
     public class RemoveUnusedProjectReferences : IResolveUR
     {
-        private const string Include = "Include";
-        private const string Reference = "Reference";
-        private const string Project = "Project";
-        private string _filePath;
-        private bool _isCancel;
-        private PackageConfig _packageConfig;
+        const string Include = "Include";
+        const string Reference = "Reference";
+        const string Project = "Project";
+        string _filePath;
+        bool _isCancel;
+        PackageConfig _packageConfig;
 
         public event HasBuildErrorsEventHandler HasBuildErrorsEvent;
         public event ProgressMessageEventHandler ProgressMessageEvent;
@@ -72,8 +72,7 @@
             _isCancel = true;
         }
 
-        private void Resolve(
-            string referenceType)
+        void Resolve(string referenceType)
         {
             RaiseProgressMessageEvent($"Resolving {referenceType}s in {Path.GetFileName(FilePath)}");
 
@@ -149,24 +148,20 @@
             RaiseProgressMessageEvent("Done with: " + Path.GetFileName(FilePath));
         }
 
-        private XmlDocument GetXmlDocument()
+        XmlDocument GetXmlDocument()
         {
             var doc = new XmlDocument();
             doc.Load(FilePath);
             return doc;
         }
 
-        private XmlNodeList getItemGroupNodesIn(
-            XmlDocument document)
+        XmlNodeList getItemGroupNodesIn(XmlDocument document)
         {
             const string itemGroupXPath = @"//*[local-name()='ItemGroup']";
             return document.SelectNodes(itemGroupXPath);
         }
 
-        private XmlNode GetReferenceGroupItemIn(
-            XmlDocument document,
-            string referenceNodeName,
-            int startIndex)
+        XmlNode GetReferenceGroupItemIn(XmlDocument document, string referenceNodeName, int startIndex)
         {
             var itemGroups = getItemGroupNodesIn(document);
 
@@ -185,25 +180,19 @@
             return null;
         }
 
-        private IEnumerable<string> getReferenceNodeNamesIn(
-            XmlNode itemGroup)
+        IEnumerable<string> getReferenceNodeNamesIn(XmlNode itemGroup)
         {
-            return
-                itemGroup.ChildNodes.OfType<XmlNode>()
-                    .Select(x => x.Attributes?[Include].Value)
-                    .ToList();
+            return itemGroup.ChildNodes.OfType<XmlNode>().Select(x => x.Attributes?[Include].Value).ToList();
         }
 
-        private XmlNode findNodeByAttributeName(
-            XmlNode itemGroup,
-            string attributeName)
+        XmlNode findNodeByAttributeName(XmlNode itemGroup, string attributeName)
         {
             return
-                itemGroup.ChildNodes.Cast<XmlNode>()
-                    .FirstOrDefault(item => item.Attributes != null && item.Attributes[Include].Value == attributeName);
+                itemGroup.ChildNodes.Cast<XmlNode>().FirstOrDefault(
+                    item => item.Attributes != null && item.Attributes[Include].Value == attributeName);
         }
 
-        private bool ProjectHasBuildErrors()
+        bool ProjectHasBuildErrors()
         {
             const string logFileName = "buildlog.txt";
             const string argumentsFormat = "\"{0}\" /clp:ErrorsOnly /nologo /m /flp:logfile={1};Verbosity=Quiet";
@@ -244,24 +233,22 @@
             return status != 0 && (s.Contains(error) || s == string.Empty);
         }
 
-        private void RaiseProgressMessageEvent(
-            string message)
+        void RaiseProgressMessageEvent(string message)
         {
             ProgressMessageEvent?.Invoke(message);
         }
 
-        private void RaiseBuildErrorsEvent()
+        void RaiseBuildErrorsEvent()
         {
             HasBuildErrorsEvent?.Invoke(Path.GetFileNameWithoutExtension(FilePath));
         }
 
-        private void RaiseItemGroupResolvedEvent()
+        void RaiseItemGroupResolvedEvent()
         {
             ItemGroupResolvedEvent?.Invoke(null, null);
         }
 
-        private void RaisePackageResolveProgressEvent(
-            string message)
+        void RaisePackageResolveProgressEvent(string message)
         {
             PackageResolveProgressEvent?.Invoke(message);
         }

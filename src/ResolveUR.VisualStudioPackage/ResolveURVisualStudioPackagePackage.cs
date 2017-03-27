@@ -56,22 +56,17 @@
         ///     See the Initialize method to see how the menu item is associated to function using
         ///     the OleMenuCommandService service and the MenuCommand class.
         /// </summary>
-        private void ProjectMenuItemCallback(
-            object sender,
-            EventArgs e)
+        void ProjectMenuItemCallback(object sender, EventArgs e)
         {
             HandleCallBack(GetProjectName);
         }
 
-        private void SolutionMenuItemCallback(
-            object sender,
-            EventArgs e)
+        void SolutionMenuItemCallback(object sender, EventArgs e)
         {
             HandleCallBack(GetSolutionName);
         }
 
-        private void HandleCallBack(
-            Func<string> activeFileNameGetter)
+        void HandleCallBack(Func<string> activeFileNameGetter)
         {
             CreateOutputWindow();
             CreateProgressDialog();
@@ -114,14 +109,14 @@
             _helper.EndWaitDialog();
         }
 
-        private bool packageOption()
+        bool packageOption()
         {
             var packageResolveOptionDialog = new PackageDialog();
             packageResolveOptionDialog.ShowModal();
             return packageResolveOptionDialog.IsResolvePackage;
         }
 
-        private string GetSolutionName()
+        string GetSolutionName()
         {
             var dte2 = GetService(typeof (SDTE)) as DTE2;
 
@@ -136,7 +131,7 @@
             return solution;
         }
 
-        private string GetProjectName()
+        string GetProjectName()
         {
             var dte2 = GetService(typeof (SDTE)) as DTE2;
 
@@ -149,7 +144,7 @@
             return project.FileName;
         }
 
-        private static string FindMsBuildPath()
+        static string FindMsBuildPath()
         {
             if (File.Exists(Settings.Default.msbuildx86v14))
                 return Settings.Default.msbuildx86v14;
@@ -181,8 +176,8 @@
 
         #region Package Members
 
-        private Helper _helper;
-        private IResolveUR _resolveur;
+        Helper _helper;
+        IResolveUR _resolveur;
 
         /// <summary>
         ///     Initialization of the package; method is called right after the package is sited, so is the place
@@ -216,7 +211,7 @@
 
         #region Create memebers
 
-        private void CreateOutputWindow()
+        void CreateOutputWindow()
         {
             var dte2 = GetService(typeof (SDTE)) as DTE2;
             if (dte2 != null)
@@ -228,8 +223,9 @@
                 const string outputWindowName = "Output";
                 for (uint i = 1; i <= outputWindow.OutputWindowPanes.Count; i++)
                 {
-                    if (outputWindow.OutputWindowPanes.Item(i)
-                        .Name.Equals(outputWindowName, StringComparison.CurrentCultureIgnoreCase))
+                    if (outputWindow.OutputWindowPanes.Item(i).Name.Equals(
+                        outputWindowName,
+                        StringComparison.CurrentCultureIgnoreCase))
                     {
                         outputWindowPane = outputWindow.OutputWindowPanes.Item(i);
                         break;
@@ -245,7 +241,7 @@
             }
         }
 
-        private void CreateProgressDialog()
+        void CreateProgressDialog()
         {
             var dialogFactory = GetService(typeof (SVsThreadedWaitDialogFactory)) as IVsThreadedWaitDialogFactory;
             IVsThreadedWaitDialog2 progressDialog = null;
@@ -276,8 +272,7 @@
             }
         }
 
-        private IResolveUR createResolver(
-            string filePath)
+        IResolveUR createResolver(string filePath)
         {
             if (filePath.EndsWith("proj"))
                 return new RemoveUnusedProjectReferences();
@@ -285,7 +280,7 @@
             return filePath.EndsWith(".sln") ? new RemoveUnusedSolutionReferences() : null;
         }
 
-        private void CreateUiShell()
+        void CreateUiShell()
         {
             _helper.UiShell = (IVsUIShell) GetService(typeof (SVsUIShell));
         }
@@ -294,8 +289,7 @@
 
         #region Resolveur Events
 
-        private void resolveur_HasBuildErrorsEvent(
-            string projectName)
+        void resolveur_HasBuildErrorsEvent(string projectName)
         {
             _helper.ShowMessageBox(
                 "Resolve Unused References",
@@ -304,21 +298,17 @@
             _helper.EndWaitDialog();
         }
 
-        private void _resolveur_PackageResolveProgressEvent(
-            string message)
+        void _resolveur_PackageResolveProgressEvent(string message)
         {
             _helper.SetMessage(message);
         }
 
-        private void helper_ResolveurCanceled(
-            object sender,
-            EventArgs e)
+        void helper_ResolveurCanceled(object sender, EventArgs e)
         {
             _resolveur.Cancel();
         }
 
-        private void resolveur_ProgressMessageEvent(
-            string message)
+        void resolveur_ProgressMessageEvent(string message)
         {
             if (message.Contains("Resolving"))
             {
@@ -328,16 +318,13 @@
             _helper.SetMessage(message);
         }
 
-        private void resolveur_ItemGroupResolvedEvent(
-            object sender,
-            EventArgs e)
+        void resolveur_ItemGroupResolvedEvent(object sender, EventArgs e)
         {
             _helper.CurrentReferenceCountInItemGroup = 0;
             _helper.ItemGroupCount++;
         }
 
-        private void resolveur_ReferenceCountEvent(
-            int count)
+        void resolveur_ReferenceCountEvent(int count)
         {
             _helper.TotalReferenceCount = count;
         }

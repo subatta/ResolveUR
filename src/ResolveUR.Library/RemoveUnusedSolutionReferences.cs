@@ -8,8 +8,8 @@
 
     public class RemoveUnusedSolutionReferences : IResolveUR
     {
-        private bool _isCancel;
-        private IResolveUR _resolveur;
+        bool _isCancel;
+        IResolveUR _resolveur;
         public event HasBuildErrorsEventHandler HasBuildErrorsEvent;
         public event ProgressMessageEventHandler ProgressMessageEvent;
         public event ReferenceCountEventHandler ReferenceCountEvent;
@@ -55,8 +55,7 @@
             _isCancel = true;
         }
 
-        private IEnumerable<string> LoadProjects(
-            string solutionPath)
+        IEnumerable<string> LoadProjects(string solutionPath)
         {
             const string projectRegEx = "Project\\(\"\\{[\\w-]*\\}\"\\) = \"([\\w _]*.*)\", \"(.*\\.(cs|vcx|vb)proj)\"";
             var content = File.ReadAllText(solutionPath);
@@ -83,34 +82,28 @@
             return projects;
         }
 
-        private void _resolveur_PackageResolveProgressEvent(
-            string message)
+        void _resolveur_PackageResolveProgressEvent(string message)
         {
             PackageResolveProgressEvent?.Invoke(message);
         }
 
-        private void _resolveur_ItemGroupResolvedEvent(
-            object sender,
-            EventArgs e)
+        void _resolveur_ItemGroupResolvedEvent(object sender, EventArgs e)
         {
             ItemGroupResolvedEvent?.Invoke(sender, e);
         }
 
-        private void _resolveur_ReferenceCountEvent(
-            int count)
+        void _resolveur_ReferenceCountEvent(int count)
         {
             ReferenceCountEvent?.Invoke(count);
         }
 
-        private void resolver_ProgressMessageEvent(
-            string message)
+        void resolver_ProgressMessageEvent(string message)
         {
             ProgressMessageEvent?.Invoke(message);
         }
 
         // rethrow event
-        private void resolver_HasBuildErrorsEvent(
-            string projectName)
+        void resolver_HasBuildErrorsEvent(string projectName)
         {
             if (HasBuildErrorsEvent != null)
             {

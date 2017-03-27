@@ -6,11 +6,11 @@
     using System.Linq;
     using System.Xml;
 
-    internal class PackageConfig
+    class PackageConfig
     {
-        private readonly HashSet<XmlNode> _packagesToKeep = new HashSet<XmlNode>();
-        private XmlDocument _packageConfigDocument;
-        private IDictionary<string, XmlNode> _packages;
+        readonly HashSet<XmlNode> _packagesToKeep = new HashSet<XmlNode>();
+        XmlDocument _packageConfigDocument;
+        IDictionary<string, XmlNode> _packages;
 
         public string PackageConfigPath { get; set; }
         public string FilePath { get; set; }
@@ -46,8 +46,7 @@
             // at the conclusion of cleanup, rewrite packages config with saved package nodes to keep
         }
 
-        public void CopyPackageToKeep(
-            XmlNode referenceNode)
+        public void CopyPackageToKeep(XmlNode referenceNode)
         {
             if (referenceNode.ChildNodes.Count == 0)
                 return;
@@ -65,8 +64,7 @@
             }
         }
 
-        public void RemoveUnusedPackage(
-            XmlNode referenceNode)
+        public void RemoveUnusedPackage(XmlNode referenceNode)
         {
             if (referenceNode.ChildNodes.Count == 0)
                 return;
@@ -93,8 +91,7 @@
             }
         }
 
-        private string getHintPath(
-            XmlNode referenceNode)
+        string getHintPath(XmlNode referenceNode)
         {
             var node = referenceNode.ChildNodes.OfType<XmlNode>().FirstOrDefault(x => x.Name == "HintPath");
             if (node == null)

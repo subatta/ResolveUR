@@ -8,9 +8,9 @@
     using Microsoft.VisualStudio.Shell.Interop;
     using Thread = System.Threading.Thread;
 
-    internal class Helper : Package
+    class Helper : Package
     {
-        private bool _dialogCanceled;
+        bool _dialogCanceled;
 
         public Helper()
         {
@@ -31,9 +31,7 @@
         public IVsUIShell UiShell { get; set; }
         public event EventHandler ResolveurCanceled;
 
-        public void ShowMessageBox(
-            string title,
-            string message)
+        public void ShowMessageBox(string title, string message)
         {
             Thread.Sleep(1000);
             var clsid = Guid.Empty;
@@ -52,8 +50,7 @@
                 out result);
         }
 
-        public void SetMessage(
-            string message)
+        public void SetMessage(string message)
         {
             if (OutputWindow != null)
             {
@@ -84,8 +81,7 @@
                 HandleResolveurCancelation(userCanceled != 0);
         }
 
-        private void HandleResolveurCancelation(
-            bool userCanceled)
+        void HandleResolveurCancelation(bool userCanceled)
         {
             ResolveurCanceled?.Invoke(null, null);
             if (userCanceled)

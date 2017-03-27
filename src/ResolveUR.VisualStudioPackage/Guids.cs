@@ -5,7 +5,7 @@ namespace ResolveURVisualStudioPackage
 {
     using System;
 
-    internal static class GuidList
+    static class GuidList
     {
         public const string GuidResolveUrVisualStudioPackagePkgString = "637ba02c-3388-4e54-9051-3eea7c51b054";
         public const string GuidResolveUrVisualStudioPackageCmdSetString = "f78e295d-0aa2-4310-b512-ef6c575b1442";
