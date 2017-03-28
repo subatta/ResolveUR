@@ -11,7 +11,6 @@
     using Microsoft.VisualStudio;
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Shell.Interop;
-    using Properties;
     using ResolveUR.Library;
     using Thread = System.Threading.Thread;
 
@@ -72,7 +71,7 @@
             CreateProgressDialog();
             CreateUiShell();
 
-            var builderPath = FindMsBuildPath();
+            var builderPath = MsBuildResolveUR.FindMsBuildPath();
             if (string.IsNullOrWhiteSpace(builderPath))
             {
                 _helper.ShowMessageBox(
@@ -142,36 +141,6 @@
             var project = (Project) activeProjects.GetValue(0);
 
             return project.FileName;
-        }
-
-        static string FindMsBuildPath()
-        {
-            if (File.Exists(Settings.Default.msbuildx86v14))
-                return Settings.Default.msbuildx86v14;
-            if (File.Exists(Settings.Default.msbuildx64v14))
-                return Settings.Default.msbuildx64v14;
-            if (File.Exists(Settings.Default.msbuildx86v12))
-                return Settings.Default.msbuildx86v12;
-            if (File.Exists(Settings.Default.msbuildx64v12))
-                return Settings.Default.msbuildx64v12;
-            if (File.Exists(Settings.Default.msbuildx6440))
-                return Settings.Default.msbuildx6440;
-            if (File.Exists(Settings.Default.msbuildx6440))
-                return Settings.Default.msbuildx6440;
-            if (File.Exists(Settings.Default.msbuildx6440))
-                return Settings.Default.msbuildx6440;
-            if (File.Exists(Settings.Default.msbuildx8640))
-                return Settings.Default.msbuildx8640;
-            if (File.Exists(Settings.Default.msbuildx6435))
-                return Settings.Default.msbuildx6435;
-            if (File.Exists(Settings.Default.msbuildx8635))
-                return Settings.Default.msbuildx8635;
-            if (File.Exists(Settings.Default.msbuildx6420))
-                return Settings.Default.msbuildx6420;
-            if (File.Exists(Settings.Default.msbuildx8620))
-                return Settings.Default.msbuildx8620;
-
-            return string.Empty;
         }
 
         #region Package Members
@@ -265,6 +234,7 @@
             var dialogCanceled = false;
             if (progressDialog != null)
                 progressDialog.HasCanceled(out dialogCanceled);
+
             if (dialogCanceled)
             {
                 _resolveur.Cancel();

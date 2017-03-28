@@ -61,16 +61,12 @@
     <Reference Include="System.Configuration" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConsoleArgs.cs" />
     <Compile Include="ConsoleArgsResolveUR.cs" />
-    <Compile Include="Constants.cs" />
-    <Compile Include="MsBuildResolveUR.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="consolekey.pfx" />
   </ItemGroup>
   <ItemGroup>
