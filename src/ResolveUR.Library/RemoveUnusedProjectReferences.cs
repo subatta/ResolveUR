@@ -13,6 +13,7 @@
         const string Include = "Include";
         const string Reference = "Reference";
         const string Project = "Project";
+
         string _filePath;
         bool _isCancel;
         PackageConfig _packageConfig;
@@ -22,6 +23,8 @@
         public event ReferenceCountEventHandler ReferenceCountEvent;
         public event EventHandler ItemGroupResolvedEvent;
         public event PackageResolveProgressEventHandler PackageResolveProgressEvent;
+
+        public bool ShouldPreview { get; set; }
 
         public string FilePath
         {
@@ -35,6 +38,7 @@
                 var dirPath = Path.GetDirectoryName(_filePath);
                 if (!IsResolvePackage)
                     return;
+
                 _packageConfig = new PackageConfig
                 {
                     FilePath = value,
@@ -56,6 +60,7 @@
                 RaiseBuildErrorsEvent();
                 return;
             }
+
             if (IsResolvePackage)
                 _packageConfig.LoadPackagesIfAny();
 
@@ -155,15 +160,9 @@
             return doc;
         }
 
-        XmlNodeList getItemGroupNodesIn(XmlDocument document)
-        {
-            const string itemGroupXPath = @"//*[local-name()='ItemGroup']";
-            return document.SelectNodes(itemGroupXPath);
-        }
-
         XmlNode GetReferenceGroupItemIn(XmlDocument document, string referenceNodeName, int startIndex)
         {
-            var itemGroups = getItemGroupNodesIn(document);
+            var itemGroups = document.SelectNodes(@"//*[local-name()='ItemGroup']");
 
             if (itemGroups == null || itemGroups.Count == 0)
                 return null;
@@ -230,7 +229,7 @@
             File.Delete(logFile);
 
             // if build error, the reference cannot be removed
-            return status != 0 && (s.Contains(error) || s == string.Empty);
+            return status != 0 && (s.Contains(error) || string.IsNullOrWhiteSpace(s));
         }
 
         void RaiseProgressMessageEvent(string message)

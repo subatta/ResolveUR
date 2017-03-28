@@ -6,6 +6,7 @@
     using EnvDTE;
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Shell.Interop;
+    using Constants = ResolveUR.Library.Constants;
     using Thread = System.Threading.Thread;
 
     class Helper : Package

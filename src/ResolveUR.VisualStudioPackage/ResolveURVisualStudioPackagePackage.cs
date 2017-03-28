@@ -12,6 +12,7 @@
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Shell.Interop;
     using ResolveUR.Library;
+    using Constants = EnvDTE.Constants;
     using Thread = System.Threading.Thread;
 
     /// <summary>
@@ -185,7 +186,7 @@
             var dte2 = GetService(typeof (SDTE)) as DTE2;
             if (dte2 != null)
             {
-                var window = dte2.Windows.Item(EnvDTE.Constants.vsWindowKindOutput);
+                var window = dte2.Windows.Item(Constants.vsWindowKindOutput);
                 var outputWindow = (OutputWindow) window.Object;
                 OutputWindowPane outputWindowPane = null;
 
@@ -219,7 +220,7 @@
 
             if (progressDialog != null &&
                 progressDialog.StartWaitDialog(
-                    Constants.AppName + " Working...",
+                    ResolveUR.Library.Constants.AppName + " Working...",
                     "Visual Studio is busy. Cancel ResolveUR by clicking Cancel button",
                     string.Empty,
                     null,
@@ -238,7 +239,7 @@
             if (dialogCanceled)
             {
                 _resolveur.Cancel();
-                _helper.ShowMessageBox(Constants.AppName + " Status", "Canceled");
+                _helper.ShowMessageBox(ResolveUR.Library.Constants.AppName + " Status", "Canceled");
             }
         }
 

@@ -19,14 +19,14 @@
             var filePath = args[0];
 
             // 2nd argument can be choice to resolve nuget packages or not.
-            var isResolvePackage = args.Length >= 2 
-                                    && string.Equals(args[1], "true", StringComparison.InvariantCultureIgnoreCase);
+            var isResolvePackage = args.Length >= 2 &&
+                                   string.Equals(args[1], "true", StringComparison.InvariantCultureIgnoreCase);
 
             // 3rd arg can be platform - x86 or x64
             var platform = string.Empty;
-            if (args.Length >= 3 
-                && (string.Equals(args[2], Constants.X86, StringComparison.InvariantCultureIgnoreCase) 
-                    || string.Equals(args[2], Constants.X64, StringComparison.InvariantCultureIgnoreCase)))
+            if (args.Length >= 3 &&
+                (string.Equals(args[2], Constants.X86, StringComparison.InvariantCultureIgnoreCase) ||
+                 string.Equals(args[2], Constants.X64, StringComparison.InvariantCultureIgnoreCase)))
                 platform = args[2];
 
             return new ConsoleArgs

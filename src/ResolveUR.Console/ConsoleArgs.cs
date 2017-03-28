@@ -3,7 +3,7 @@
     class ConsoleArgs
     {
         public string FilePath;
-        public bool ShouldResolveNugets;
         public string Platform;
+        public bool ShouldResolveNugets;
     }
 }

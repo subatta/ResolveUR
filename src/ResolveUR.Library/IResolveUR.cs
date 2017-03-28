@@ -10,12 +10,16 @@
 
     public delegate void PackageResolveProgressEventHandler(string message);
 
-// ReSharper disable once InconsistentNaming -- Product Name
     public interface IResolveUR
     {
         string BuilderPath { get; set; }
+
         string FilePath { get; set; }
+
         bool IsResolvePackage { get; set; }
+
+        bool ShouldPreview { get; set; }
+
         event HasBuildErrorsEventHandler HasBuildErrorsEvent;
         event ProgressMessageEventHandler ProgressMessageEvent;
         event ReferenceCountEventHandler ReferenceCountEvent;

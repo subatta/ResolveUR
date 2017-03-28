@@ -4,8 +4,6 @@
 
     public class MsBuildResolveUR
     {
-        const string Msbuild = "MSBuild.exe";
-
         public static string FindMsBuildPath(string platform = "")
         {
             var path = string.Empty;
@@ -34,40 +32,40 @@
 
         static string GetX86Path()
         {
-            if (File.Exists($"{Constants.Msbuildx8620}/{Msbuild}"))
-                return $"{Constants.Msbuildx8620}/{Msbuild}";
+            if (File.Exists(Constants.Msbuildx8620))
+                return Constants.Msbuildx8620;
 
-            if (File.Exists($"{Constants.Msbuildx8635}/{Msbuild}"))
-                return $"{Constants.Msbuildx8635}/{Msbuild}";
+            if (File.Exists(Constants.Msbuildx8635))
+                return Constants.Msbuildx8635;
 
-            if (File.Exists($"{Constants.Msbuildx8640}/{Msbuild}"))
-                return $"{Constants.Msbuildx8640}/{Msbuild}";
+            if (File.Exists(Constants.Msbuildx8640))
+                return Constants.Msbuildx8640;
 
-            if (File.Exists($"{Constants.Msbuildx86V12}/{Msbuild}"))
-                return $"{Constants.Msbuildx86V12}/{Msbuild}";
+            if (File.Exists(Constants.Msbuildx86V12))
+                return Constants.Msbuildx86V12;
 
-            if (File.Exists($"{Constants.Msbuildx86V14}/{Msbuild}"))
-                return $"{Constants.Msbuildx86V14}/{Msbuild}";
+            if (File.Exists(Constants.Msbuildx86V14))
+                return Constants.Msbuildx86V14;
 
             return null;
         }
 
         static string GetX64Path()
         {
-            if (File.Exists($"{Constants.Msbuildx6420}/{Msbuild}"))
-                return $"{Constants.Msbuildx6420}/{Msbuild}";
+            if (File.Exists(Constants.Msbuildx6420))
+                return Constants.Msbuildx6420;
 
-            if (File.Exists($"{Constants.Msbuildx6435}/{Msbuild}"))
-                return $"{Constants.Msbuildx6435}/{Msbuild}";
+            if (File.Exists(Constants.Msbuildx6435))
+                return Constants.Msbuildx6435;
 
-            if (File.Exists($"{Constants.Msbuildx6440}/{Msbuild}"))
-                return $"{Constants.Msbuildx6440}/{Msbuild}";
+            if (File.Exists(Constants.Msbuildx6440))
+                return Constants.Msbuildx6440;
 
-            if (File.Exists($"{Constants.Msbuildx64V12}/{Msbuild}"))
-                return $"{Constants.Msbuildx64V12}/{Msbuild}";
+            if (File.Exists(Constants.Msbuildx64V12))
+                return Constants.Msbuildx64V12;
 
-            if (File.Exists($"{Constants.Msbuildx64V14}/{Msbuild}"))
-                return $"{Constants.Msbuildx64V14}/{Msbuild}";
+            if (File.Exists(Constants.Msbuildx64V14))
+                return Constants.Msbuildx64V14;
 
             return null;
         }

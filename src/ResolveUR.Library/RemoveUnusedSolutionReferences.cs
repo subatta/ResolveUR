@@ -16,6 +16,8 @@
         public event EventHandler ItemGroupResolvedEvent;
         public event PackageResolveProgressEventHandler PackageResolveProgressEvent;
 
+        public bool ShouldPreview { get; set; }
+
         public bool IsResolvePackage { get; set; }
 
         public string BuilderPath { get; set; }

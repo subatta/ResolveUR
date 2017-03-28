@@ -130,7 +130,6 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Constants.cs" />
     <Compile Include="Guids.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="PackageDialog.xaml.cs">
