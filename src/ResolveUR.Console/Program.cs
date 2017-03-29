@@ -10,26 +10,17 @@
         {
             try
             {
-                var consoleArgs = ConsoleArgsResolveUR.Resolve(args);
+                var resolveUrOptions = ConsoleArgsResolveUR.Resolve(args);
 
-                var msbuild = CheckMsBuildExists(consoleArgs.Platform);
+                resolveUrOptions.MsBuilderPath = MsBuildResolveUR.FindMsBuildPath(resolveUrOptions.Platform);
 
-                var resolveur = GetSolutionOrProjectResolver(consoleArgs.FilePath);
+                var resolveur = ResolveURFactory.GetResolver(
+                    resolveUrOptions,
+                    resolveur_HasBuildErrorsEvent,
+                    resolveur_PackageResolveProgressEvent,
+                    resolveur_ProgressMessageEvent);
 
-                if (resolveur != null)
-                {
-                    resolveur.IsResolvePackage = consoleArgs.ShouldResolveNugets;
-                    resolveur.BuilderPath = msbuild;
-                    resolveur.FilePath = consoleArgs.FilePath;
-                    resolveur.HasBuildErrorsEvent += resolveur_HasBuildErrorsEvent;
-                    resolveur.ProgressMessageEvent += resolveur_ProgressMessageEvent;
-                    resolveur.PackageResolveProgressEvent += resolveur_PackageResolveProgressEvent;
-                    resolveur.Resolve();
-                }
-                else
-                {
-                    Console.WriteLine("Unrecognized project or solution type");
-                }
+                resolveur.Resolve();
             }
             catch (ArgumentException ae)
             {
@@ -43,26 +34,10 @@
             {
                 Console.WriteLine(ide.Message);
             }
-        }
-
-        static string CheckMsBuildExists(string platform)
-        {
-            var msbuildPath = MsBuildResolveUR.FindMsBuildPath(platform);
-            if (string.IsNullOrWhiteSpace(msbuildPath))
-                throw new FileNotFoundException("MsBuild not found on system!");
-
-            return msbuildPath;
-        }
-
-        static IResolveUR GetSolutionOrProjectResolver(string filePath)
-        {
-            if (filePath.EndsWith("proj"))
-                return new RemoveUnusedProjectReferences();
-
-            if (filePath.EndsWith(".sln"))
-                return new RemoveUnusedSolutionReferences();
-
-            throw new InvalidDataException("The file path supplied(arg 0) must either be a solution or project file");
+            catch (NotSupportedException nse)
+            {
+                Console.WriteLine(nse.Message);
+            }
         }
 
         static void resolveur_PackageResolveProgressEvent(string message)

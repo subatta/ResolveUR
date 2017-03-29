@@ -72,41 +72,49 @@
             CreateProgressDialog();
             CreateUiShell();
 
-            var builderPath = MsBuildResolveUR.FindMsBuildPath();
-            if (string.IsNullOrWhiteSpace(builderPath))
+            try
             {
-                _helper.ShowMessageBox(
-                    "MsBuild Exe not found",
-                    "MsBuild Executable required to compile project was not found on machine. Aborting...");
-                _helper.EndWaitDialog();
-                return;
-            }
+                var options = new ResolveUROptions
+                {
+                    MsBuilderPath = MsBuildResolveUR.FindMsBuildPath(),
+                    FilePath = activeFileNameGetter(),
+                    ShouldResolvePackages = packageOption()
+                };
 
-            var filePath = activeFileNameGetter();
-            if (string.IsNullOrEmpty(filePath))
-            {
-                resolveur_ProgressMessageEvent("Invalid file");
-                return;
-            }
+                if (string.IsNullOrEmpty(options.FilePath))
+                {
+                    resolveur_ProgressMessageEvent("Invalid file");
+                    return;
+                }
 
-            _resolveur = createResolver(filePath);
-            if (_resolveur == null)
-                resolveur_ProgressMessageEvent("Unrecognized project or solution type");
-            else
-            {
+                _resolveur = ResolveURFactory.GetResolver(
+                    options,
+                    resolveur_HasBuildErrorsEvent,
+                    resolveur_PackageResolveProgressEvent,
+                    resolveur_ProgressMessageEvent,
+                    resolveur_ReferenceCountEvent,
+                    resolveur_ItemGroupResolvedEvent);
+
                 _helper.ResolveurCanceled += helper_ResolveurCanceled;
-                _resolveur.IsResolvePackage = packageOption();
-                _resolveur.BuilderPath = builderPath;
-                _resolveur.FilePath = filePath;
-                _resolveur.HasBuildErrorsEvent += resolveur_HasBuildErrorsEvent;
-                _resolveur.ProgressMessageEvent += resolveur_ProgressMessageEvent;
-                _resolveur.ReferenceCountEvent += resolveur_ReferenceCountEvent;
-                _resolveur.ItemGroupResolvedEvent += resolveur_ItemGroupResolvedEvent;
-                _resolveur.PackageResolveProgressEvent += _resolveur_PackageResolveProgressEvent;
+
                 _resolveur.Resolve();
             }
-
-            _helper.EndWaitDialog();
+            catch (FileNotFoundException fnfe)
+            {
+                _helper.ShowMessageBox("File Not Found", fnfe.Message);
+            }
+            catch (InvalidDataException ide)
+            {
+                _helper.ShowMessageBox("Invalid Data", ide.Message);
+            }
+            catch (NotSupportedException nse)
+            {
+                _helper.ShowMessageBox("Selected file type invalid for resolution", nse.Message);
+            }
+            finally
+            {
+                _helper.EndWaitDialog();
+            }
         }
 
         bool packageOption()
@@ -147,7 +155,7 @@
         #region Package Members
 
         Helper _helper;
-        IResolveUR _resolveur;
+        IResolve _resolveur;
 
         /// <summary>
         ///     Initialization of the package; method is called right after the package is sited, so is the place
@@ -179,7 +187,7 @@
 
         #endregion
 
-        #region Create memebers
+        #region Create Members
 
         void CreateOutputWindow()
         {
@@ -243,14 +251,6 @@
             }
         }
 
-        IResolveUR createResolver(string filePath)
-        {
-            if (filePath.EndsWith("proj"))
-                return new RemoveUnusedProjectReferences();
-
-            return filePath.EndsWith(".sln") ? new RemoveUnusedSolutionReferences() : null;
-        }
-
         void CreateUiShell()
         {
             _helper.UiShell = (IVsUIShell) GetService(typeof (SVsUIShell));
@@ -269,7 +269,7 @@
             _helper.EndWaitDialog();
         }
 
-        void _resolveur_PackageResolveProgressEvent(string message)
+        void resolveur_PackageResolveProgressEvent(string message)
         {
             _helper.SetMessage(message);
         }

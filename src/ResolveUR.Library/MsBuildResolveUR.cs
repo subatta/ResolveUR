@@ -27,6 +27,9 @@
                 }
             }
 
+            if (string.IsNullOrWhiteSpace(path))
+                throw new FileNotFoundException("MsBuild not found on system!");
+
             return path;
         }
 

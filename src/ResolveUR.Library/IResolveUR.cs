@@ -10,13 +10,19 @@
 
     public delegate void PackageResolveProgressEventHandler(string message);
 
-    public interface IResolveUR
+    public interface IResolve
+    {
+        void Resolve();
+        void Cancel();
+    }
+
+    public interface IResolveUR : IResolve
     {
         string BuilderPath { get; set; }
 
         string FilePath { get; set; }
 
-        bool IsResolvePackage { get; set; }
+        bool ShouldResolvePackage { get; set; }
 
         bool ShouldPreview { get; set; }
 
@@ -25,9 +31,5 @@
         event ReferenceCountEventHandler ReferenceCountEvent;
         event EventHandler ItemGroupResolvedEvent;
         event PackageResolveProgressEventHandler PackageResolveProgressEvent;
-
-        void Resolve();
-
-        void Cancel();
     }
 }

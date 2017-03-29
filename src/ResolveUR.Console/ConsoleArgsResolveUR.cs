@@ -6,7 +6,7 @@
 
     class ConsoleArgsResolveUR
     {
-        public static ConsoleArgs Resolve(string[] args)
+        public static ResolveUROptions Resolve(string[] args)
         {
             // at least solution path is required
             if (args == null || args.Length == 0)
@@ -29,10 +29,10 @@
                  string.Equals(args[2], Constants.X64, StringComparison.InvariantCultureIgnoreCase)))
                 platform = args[2];
 
-            return new ConsoleArgs
+            return new ResolveUROptions
             {
                 FilePath = filePath,
-                ShouldResolveNugets = isResolvePackage,
+                ShouldResolvePackages = isResolvePackage,
                 Platform = platform
             };
         }

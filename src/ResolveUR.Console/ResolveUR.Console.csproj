@@ -61,7 +61,6 @@
     <Reference Include="System.Configuration" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConsoleArgs.cs" />
     <Compile Include="ConsoleArgsResolveUR.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

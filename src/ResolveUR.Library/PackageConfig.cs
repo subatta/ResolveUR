@@ -17,11 +17,11 @@
 
         public void LoadPackagesIfAny()
         {
-            // an entry in package config maps to hint path under reference node as follows:
+            // an entry in package config maps to hint path under project reference node as follows:
             // Entry : <package id="CsvHelper" version="2.7.0" targetFramework="net45" />
             // Hint path : <HintPath>..\packages\CsvHelper.2.7.0\lib\net40-client\CsvHelper.dll</HintPath>
 
-            // Folder in HintPath CsvHelper.2.7.0 is derived by concatenation of Id and Version attributes of Entry
+            // Folder in HintPath CsvHelper.2.7.0 is derieved by concatenation of Id and Version attributes of Entry
 
             // map versioned library CsvHelper.2.7.0 to package entries in method
             if (!File.Exists(PackageConfigPath) || _packageConfigDocument != null)
@@ -36,6 +36,7 @@
                 _packages = new Dictionary<string, XmlNode>();
             if (packageNodes == null)
                 return;
+
             foreach (XmlNode node in packageNodes)
             {
                 if (node.Attributes != null)
@@ -54,6 +55,7 @@
             var hintPath = getHintPath(referenceNode);
             if (string.IsNullOrWhiteSpace(hintPath))
                 return;
+
             foreach (var package in _packages)
             {
                 if (hintPath.Contains(package.Key) && !_packagesToKeep.Contains(package.Value))
@@ -74,19 +76,22 @@
             {
                 if (!hintPath.Contains(package.Key))
                     continue;
+
                 var packagePath = hintPath.Substring(0, hintPath.IndexOf(package.Key, StringComparison.Ordinal)) +
                                   package.Key;
                 var folderName = Path.GetDirectoryName(FilePath);
                 if (folderName != null)
                     packagePath = Path.Combine(folderName, packagePath);
+
                 try
                 {
                     Directory.Delete(packagePath, true);
                 }
-                    // ReSharper disable once EmptyGeneralCatchClause // // don't bother
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Console.WriteLine(ex.Message);
                 }
+
                 break;
             }
         }

@@ -40,13 +40,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ResolveUROptions.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="IResolveUR.cs" />
     <Compile Include="MsBuildResolveUR.cs" />
     <Compile Include="PackageConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RemoveUnusedProjectReferences.cs" />
-    <Compile Include="RemoveUnusedSolutionReferences.cs" />
+    <Compile Include="ProjectReferencesResolveUR.cs" />
+    <Compile Include="SolutionReferencesResolveUR.cs" />
+    <Compile Include="ResolveURFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ResolveUR.pfx" />
