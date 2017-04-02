@@ -8,14 +8,13 @@
 
     class PackageConfig
     {
-        readonly HashSet<XmlNode> _packagesToKeep = new HashSet<XmlNode>();
         XmlDocument _packageConfigDocument;
         IDictionary<string, XmlNode> _packages;
 
         public string PackageConfigPath { get; set; }
         public string FilePath { get; set; }
 
-        public void LoadPackagesIfAny()
+        public void Load()
         {
             // an entry in package config maps to hint path under project reference node as follows:
             // Entry : <package id="CsvHelper" version="2.7.0" targetFramework="net45" />
@@ -37,36 +36,16 @@
             if (packageNodes == null)
                 return;
 
-            foreach (XmlNode node in packageNodes)
-            {
-                if (node.Attributes != null)
-                    _packages.Add(node.Attributes["id"].Value + "." + node.Attributes["version"].Value, node);
-            }
+            const string id = "id";
+            const string version = "version";
+            foreach (var node in packageNodes.Cast<XmlNode>().Where(node => node.Attributes != null))
+                _packages.Add($"{node.Attributes[id].Value}.{node.Attributes[version].Value}", node);
 
             // when references are cleaned up later, store package nodes that match hint paths for references that are ok to keep
             // at the conclusion of cleanup, rewrite packages config with saved package nodes to keep
         }
 
-        public void CopyPackageToKeep(XmlNode referenceNode)
-        {
-            if (referenceNode.ChildNodes.Count == 0)
-                return;
-
-            var hintPath = getHintPath(referenceNode);
-            if (string.IsNullOrWhiteSpace(hintPath))
-                return;
-
-            foreach (var package in _packages)
-            {
-                if (hintPath.Contains(package.Key) && !_packagesToKeep.Contains(package.Value))
-                {
-                    _packagesToKeep.Add(package.Value);
-                    break;
-                }
-            }
-        }
-
-        public void RemoveUnusedPackage(XmlNode referenceNode)
+        public void Remove(XmlNode referenceNode)
         {
             if (referenceNode.ChildNodes.Count == 0)
                 return;
@@ -77,19 +56,20 @@
                 if (!hintPath.Contains(package.Key))
                     continue;
 
-                var packagePath = hintPath.Substring(0, hintPath.IndexOf(package.Key, StringComparison.Ordinal)) +
-                                  package.Key;
+                var packagePath =
+                    $"{hintPath.Substring(0, hintPath.IndexOf(package.Key, StringComparison.Ordinal))}{package.Key}";
                 var folderName = Path.GetDirectoryName(FilePath);
                 if (folderName != null)
                     packagePath = Path.Combine(folderName, packagePath);
 
                 try
                 {
+                    _packageConfigDocument.DocumentElement?.RemoveChild(package.Value);
                     Directory.Delete(packagePath, true);
                 }
-                catch (Exception ex)
+                catch (DirectoryNotFoundException)
                 {
-                    Console.WriteLine(ex.Message);
+                    Console.WriteLine("The package was already deleted.");
                 }
 
                 break;
@@ -99,26 +79,12 @@
         string getHintPath(XmlNode referenceNode)
         {
             var node = referenceNode.ChildNodes.OfType<XmlNode>().FirstOrDefault(x => x.Name == "HintPath");
-            if (node == null)
-                return string.Empty;
-
-            return node.InnerXml;
+            return node == null ? string.Empty : node.InnerXml;
         }
 
-        public void UpdatePackageConfig()
+        public void Save()
         {
-            if (_packagesToKeep.Count == 0)
-                return;
-
-            if (_packageConfigDocument.DocumentElement != null)
-            {
-                _packageConfigDocument.DocumentElement.RemoveAll();
-                foreach (var package in _packagesToKeep)
-                    _packageConfigDocument.DocumentElement.AppendChild(package);
-            }
-
             _packageConfigDocument.Save(PackageConfigPath);
-            _packagesToKeep.Clear();
         }
     }
 }

@@ -132,6 +132,9 @@
   <ItemGroup>
     <Compile Include="Guids.cs" />
     <Compile Include="Helper.cs" />
+    <Compile Include="RemoveConfirmDialog.xaml.cs">
+      <DependentUpon>RemoveConfirmDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="PackageDialog.xaml.cs">
       <DependentUpon>PackageDialog.xaml</DependentUpon>
     </Compile>
@@ -183,6 +186,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="RemoveConfirmDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="PackageDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

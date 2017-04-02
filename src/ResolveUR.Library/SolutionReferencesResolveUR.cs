@@ -34,6 +34,11 @@
             }
         }
 
+        public void Clean()
+        {
+            _resolveur.Clean();
+        }
+
         public void Cancel()
         {
             _isCancel = true;

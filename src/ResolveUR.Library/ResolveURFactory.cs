@@ -1,17 +1,16 @@
 ﻿namespace ResolveUR.Library
 {
-    using System;
     using System.IO;
 
     public class ResolveURFactory
     {
+        const string Proj = "proj";
+        const string Sln = "sln";
+
         public static IResolve GetResolver(
             ResolveUROptions options,
-            HasBuildErrorsEventHandler hasBuildErrorsEventHandler,
-            ProgressMessageEventHandler progressMessageEventHandler,
-            PackageResolveProgressEventHandler packageResolveProgressEventHandler,
-            ReferenceCountEventHandler referenceCountEventHandler = null,
-            EventHandler itemGroupResolverEventHandler = null)
+            HasBuildErrorsEventHandler hasBuildErrorsEvent,
+            ProjectResolveCompleteEventHandler projectResolveCompleteEvent)
         {
             IResolveUR resolveUr = new ProjectReferencesResolveUR
             {
@@ -19,24 +18,20 @@
                 BuilderPath = options.MsBuilderPath,
                 FilePath = options.FilePath
             };
+            resolveUr.HasBuildErrorsEvent += hasBuildErrorsEvent;
+            resolveUr.ProjectResolveCompleteEvent += projectResolveCompleteEvent;
 
-            resolveUr.HasBuildErrorsEvent += hasBuildErrorsEventHandler;
-            resolveUr.ProgressMessageEvent += progressMessageEventHandler;
-            resolveUr.PackageResolveProgressEvent += packageResolveProgressEventHandler;
-
-            if (referenceCountEventHandler != null)
-                resolveUr.ReferenceCountEvent += referenceCountEventHandler;
-            if (itemGroupResolverEventHandler != null)
-                resolveUr.ItemGroupResolvedEvent += itemGroupResolverEventHandler;
-
-            if (options.FilePath.EndsWith("proj"))
+            if (options.FilePath.EndsWith(Proj))
                 return resolveUr;
-            if (options.FilePath.EndsWith(".sln"))
+
+            if (options.FilePath.EndsWith(Sln))
                 return new SolutionReferencesResolveUR(resolveUr);
 
             if (resolveUr == null)
+            {
                 throw new InvalidDataException(
                     "The file path supplied(arg 0) must either be a solution or project file");
+            }
 
             return resolveUr;
         }

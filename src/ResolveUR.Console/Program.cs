@@ -6,6 +6,8 @@
 
     public class Program
     {
+        static IResolve _resolveur;
+
         public static void Main(string[] args)
         {
             try
@@ -14,13 +16,12 @@
 
                 resolveUrOptions.MsBuilderPath = MsBuildResolveUR.FindMsBuildPath(resolveUrOptions.Platform);
 
-                var resolveur = ResolveURFactory.GetResolver(
+                _resolveur = ResolveURFactory.GetResolver(
                     resolveUrOptions,
                     resolveur_HasBuildErrorsEvent,
-                    resolveur_PackageResolveProgressEvent,
-                    resolveur_ProgressMessageEvent);
+                    resolveur_ProjectResolveCompleteEvent);
 
-                resolveur.Resolve();
+                _resolveur.Resolve();
             }
             catch (ArgumentException ae)
             {
@@ -40,14 +41,15 @@
             }
         }
 
-        static void resolveur_PackageResolveProgressEvent(string message)
+        static void resolveur_ProjectResolveCompleteEvent()
         {
-            Console.WriteLine(message);
-        }
+            Console.WriteLine("Continue with removal of references (y/n)? Default is y: ");
+            var response = Console.ReadLine();
 
-        static void resolveur_ProgressMessageEvent(string message)
-        {
-            Console.WriteLine(message);
+            const string yes = "y";
+            response = string.IsNullOrWhiteSpace(response) ? yes : response;
+            if (string.Equals(response, yes, StringComparison.CurrentCultureIgnoreCase))
+                _resolveur.Clean();
         }
 
         static void resolveur_HasBuildErrorsEvent(string projectName)

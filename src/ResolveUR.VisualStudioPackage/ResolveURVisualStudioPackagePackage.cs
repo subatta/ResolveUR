@@ -82,18 +82,12 @@
                 };
 
                 if (string.IsNullOrEmpty(options.FilePath))
-                {
-                    resolveur_ProgressMessageEvent("Invalid file");
                     return;
-                }
 
                 _resolveur = ResolveURFactory.GetResolver(
                     options,
                     resolveur_HasBuildErrorsEvent,
-                    resolveur_PackageResolveProgressEvent,
-                    resolveur_ProgressMessageEvent,
-                    resolveur_ReferenceCountEvent,
-                    resolveur_ItemGroupResolvedEvent);
+                    resolveur_ProjectResolveCompleteEvent);
 
                 _helper.ResolveurCanceled += helper_ResolveurCanceled;
 
@@ -122,6 +116,13 @@
             var packageResolveOptionDialog = new PackageDialog();
             packageResolveOptionDialog.ShowModal();
             return packageResolveOptionDialog.IsResolvePackage;
+        }
+
+        bool removeConfirmed()
+        {
+            var removeConfirmDialog = new RemoveConfirmDialog();
+            removeConfirmDialog.ShowModal();
+            return removeConfirmDialog.IsRemoveConfirm;
         }
 
         string GetSolutionName()
@@ -168,21 +169,21 @@
 
             // Add our command handlers for menu (commands must exist in the .vsct file)
             var mcs = GetService(typeof (IMenuCommandService)) as OleMenuCommandService;
-            if (null != mcs)
-            {
-                // Create the command for the menu item.
-                var menuCommandId = new CommandID(
-                    GuidList.GuidResolveUrVisualStudioPackageCmdSet,
-                    (int) PkgCmdIdList.CmdRemoveUnusedProjectReferences);
-                var menuItem = new MenuCommand(ProjectMenuItemCallback, menuCommandId);
-                mcs.AddCommand(menuItem);
-                menuCommandId = new CommandID(
-                    GuidList.GuidResolveUrVisualStudioPackageCmdSet,
-                    (int) PkgCmdIdList.CmdRemoveUnusedSolutionReferences);
-                menuItem = new MenuCommand(SolutionMenuItemCallback, menuCommandId);
-                mcs.AddCommand(menuItem);
-                _helper = new Helper();
-            }
+            if (null == mcs)
+                return;
+
+            // Create the command for the menu item.
+            var menuCommandId = new CommandID(
+                GuidList.GuidResolveUrVisualStudioPackageCmdSet,
+                (int) PkgCmdIdList.CmdRemoveUnusedProjectReferences);
+            var menuItem = new MenuCommand(ProjectMenuItemCallback, menuCommandId);
+            mcs.AddCommand(menuItem);
+            menuCommandId = new CommandID(
+                GuidList.GuidResolveUrVisualStudioPackageCmdSet,
+                (int) PkgCmdIdList.CmdRemoveUnusedSolutionReferences);
+            menuItem = new MenuCommand(SolutionMenuItemCallback, menuCommandId);
+            mcs.AddCommand(menuItem);
+            _helper = new Helper();
         }
 
         #endregion
@@ -192,31 +193,32 @@
         void CreateOutputWindow()
         {
             var dte2 = GetService(typeof (SDTE)) as DTE2;
-            if (dte2 != null)
-            {
-                var window = dte2.Windows.Item(Constants.vsWindowKindOutput);
-                var outputWindow = (OutputWindow) window.Object;
-                OutputWindowPane outputWindowPane = null;
+            if (dte2 == null)
+                return;
 
-                const string outputWindowName = "Output";
-                for (uint i = 1; i <= outputWindow.OutputWindowPanes.Count; i++)
-                {
-                    if (outputWindow.OutputWindowPanes.Item(i).Name.Equals(
+            var window = dte2.Windows.Item(Constants.vsWindowKindOutput);
+            var outputWindow = (OutputWindow) window.Object;
+            OutputWindowPane outputWindowPane = null;
+
+            const string outputWindowName = "Output";
+            for (uint i = 1; i <= outputWindow.OutputWindowPanes.Count; i++)
+            {
+                if (
+                    !outputWindow.OutputWindowPanes.Item(i).Name.Equals(
                         outputWindowName,
                         StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        outputWindowPane = outputWindow.OutputWindowPanes.Item(i);
-                        break;
-                    }
-                }
+                    continue;
 
-                if (outputWindowPane == null)
-                {
-                    outputWindowPane = outputWindow.OutputWindowPanes.Add(outputWindowName);
-                    if (outputWindowPane != null)
-                        _helper.OutputWindow = outputWindow;
-                }
+                outputWindowPane = outputWindow.OutputWindowPanes.Item(i);
+                break;
             }
+
+            if (outputWindowPane != null)
+                return;
+
+            outputWindowPane = outputWindow.OutputWindowPanes.Add(outputWindowName);
+            if (outputWindowPane != null)
+                _helper.OutputWindow = outputWindow;
         }
 
         void CreateProgressDialog()
@@ -244,11 +246,11 @@
             if (progressDialog != null)
                 progressDialog.HasCanceled(out dialogCanceled);
 
-            if (dialogCanceled)
-            {
-                _resolveur.Cancel();
-                _helper.ShowMessageBox(ResolveUR.Library.Constants.AppName + " Status", "Canceled");
-            }
+            if (!dialogCanceled)
+                return;
+
+            _resolveur.Cancel();
+            _helper.ShowMessageBox(ResolveUR.Library.Constants.AppName + " Status", "Canceled");
         }
 
         void CreateUiShell()
@@ -269,35 +271,15 @@
             _helper.EndWaitDialog();
         }
 
-        void resolveur_PackageResolveProgressEvent(string message)
+        void resolveur_ProjectResolveCompleteEvent()
         {
-            _helper.SetMessage(message);
+            if (removeConfirmed())
+                _resolveur.Clean();
         }
 
         void helper_ResolveurCanceled(object sender, EventArgs e)
         {
             _resolveur.Cancel();
-        }
-
-        void resolveur_ProgressMessageEvent(string message)
-        {
-            if (message.Contains("Resolving"))
-            {
-                _helper.ItemGroupCount = 1;
-                _helper.CurrentProject = message;
-            }
-            _helper.SetMessage(message);
-        }
-
-        void resolveur_ItemGroupResolvedEvent(object sender, EventArgs e)
-        {
-            _helper.CurrentReferenceCountInItemGroup = 0;
-            _helper.ItemGroupCount++;
-        }
-
-        void resolveur_ReferenceCountEvent(int count)
-        {
-            _helper.TotalReferenceCount = count;
         }
 
         #endregion

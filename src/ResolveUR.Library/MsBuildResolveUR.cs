@@ -35,40 +35,40 @@
 
         static string GetX86Path()
         {
-            if (File.Exists(Constants.Msbuildx8620))
-                return Constants.Msbuildx8620;
-
-            if (File.Exists(Constants.Msbuildx8635))
-                return Constants.Msbuildx8635;
-
-            if (File.Exists(Constants.Msbuildx8640))
-                return Constants.Msbuildx8640;
+            if (File.Exists(Constants.Msbuildx86V14))
+                return Constants.Msbuildx86V14;
 
             if (File.Exists(Constants.Msbuildx86V12))
                 return Constants.Msbuildx86V12;
 
-            if (File.Exists(Constants.Msbuildx86V14))
-                return Constants.Msbuildx86V14;
+            if (File.Exists(Constants.Msbuildx8640))
+                return Constants.Msbuildx8640;
+
+            if (File.Exists(Constants.Msbuildx8635))
+                return Constants.Msbuildx8635;
+
+            if (File.Exists(Constants.Msbuildx8620))
+                return Constants.Msbuildx8620;
 
             return null;
         }
 
         static string GetX64Path()
         {
-            if (File.Exists(Constants.Msbuildx6420))
-                return Constants.Msbuildx6420;
-
-            if (File.Exists(Constants.Msbuildx6435))
-                return Constants.Msbuildx6435;
-
-            if (File.Exists(Constants.Msbuildx6440))
-                return Constants.Msbuildx6440;
+            if (File.Exists(Constants.Msbuildx64V14))
+                return Constants.Msbuildx64V14;
 
             if (File.Exists(Constants.Msbuildx64V12))
                 return Constants.Msbuildx64V12;
 
-            if (File.Exists(Constants.Msbuildx64V14))
-                return Constants.Msbuildx64V14;
+            if (File.Exists(Constants.Msbuildx6440))
+                return Constants.Msbuildx6440;
+
+            if (File.Exists(Constants.Msbuildx6435))
+                return Constants.Msbuildx6435;
+
+            if (File.Exists(Constants.Msbuildx6420))
+                return Constants.Msbuildx6420;
 
             return null;
         }
