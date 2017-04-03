@@ -1,2 +1,3 @@
 Unused References are presented in machine's default text editor and allows excluding references from removal. 
 A final confirmation is also added so no changes are done should user decides to change his/her mind.
+Nuget packages marked as development dependency are also excluded.

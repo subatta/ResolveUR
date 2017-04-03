@@ -8,6 +8,11 @@
 
     class PackageConfig
     {
+        const string Id = "id";
+        const string Version = "version";
+        const string DevelopmentDependency = "developmentDependency";
+        const string PackageNode = @"//*[local-name()='package']";
+
         XmlDocument _packageConfigDocument;
         IDictionary<string, XmlNode> _packages;
 
@@ -29,17 +34,14 @@
             _packageConfigDocument = new XmlDocument();
             _packageConfigDocument.Load(PackageConfigPath);
 
-            const string packageNode = @"//*[local-name()='package']";
-            var packageNodes = _packageConfigDocument.SelectNodes(packageNode);
+            var packageNodes = _packageConfigDocument.SelectNodes(PackageNode);
             if (packageNodes != null && packageNodes.Count > 0)
                 _packages = new Dictionary<string, XmlNode>();
             if (packageNodes == null)
                 return;
 
-            const string id = "id";
-            const string version = "version";
-            foreach (var node in packageNodes.Cast<XmlNode>().Where(node => node.Attributes != null))
-                _packages.Add($"{node.Attributes[id].Value}.{node.Attributes[version].Value}", node);
+            foreach (var node in packageNodes.Cast<XmlNode>().Where(node => node.Attributes != null && node.Attributes[DevelopmentDependency] == null))
+                _packages.Add($"{node.Attributes[Id].Value}.{node.Attributes[Version].Value}", node);
 
             // when references are cleaned up later, store package nodes that match hint paths for references that are ok to keep
             // at the conclusion of cleanup, rewrite packages config with saved package nodes to keep

@@ -1,8 +1,6 @@
 ## ResolveUR - Resolve Unused References
 
-Update 8/1/2014: Visual studio extension is published at [Visual Studio Gallery](http://visualstudiogallery.msdn.microsoft.com/e96c042-9a83-4fa2-921d-6b09aa044315)
-
-Update 8/2/2014: Visual studio console is published at [Visual Studio Gallery](http://visualstudiogallery.msdn.microsoft.com/faf25a06-0490-4eaf-82ab-c42b729a764e)
+Update 4/2/2017: Visual studio extension is published at [Visual Studio Gallery](http://visualstudiogallery.msdn.microsoft.com/e96c042-9a83-4fa2-921d-6b09aa044315)
 
 Resolves project references for a Visual Studio Solution by <b>removing unused references</b> in each project of the solution.
 
@@ -29,7 +27,7 @@ With platform also specified, x86 for example looks only x86 .net MSBuild versio
     ResolveUR.exe [Path of solution file] [true/false] [platform]
 
 ### Change and Version History
-
+- 4/2/2017  - v3.1 - Added Nuget packages marked as development dependency to be excluded
 - 4/2/2017  - v3.0 - Updated with a preview mode allowing exclusion and final confirmation before removal of references
 - 8/23/2014 - v2.2 - Make package solution optional since getting it right is much more involved, better left to developer discretion at this point. Plan to add a package developer edited exclusion list in future.
 - 8/22/2014 - v2.1 - fixed regression bug. Resolution continued in spit of build errors

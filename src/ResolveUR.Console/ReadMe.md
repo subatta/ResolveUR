@@ -27,7 +27,7 @@ With platform also specified, x86, for example, looks only x86 .net MSBuild vers
 `ResolveUR.exe [Path of solution file] [true/false] [platform]`
 
 ### Change and Version History
-
+* 4/2/2017    - v3.1 - Added Nuget packages marked as development dependency to be excluded
 * 4/2/2017    - v3.0 - Updated with a preview mode allowing exclusion and final confirmation before removal of references
 * 12/17/2015  - v2.3 - Version for 2015
 * 8/23/2014   - v2.2 - Make package solution optional since getting it right is much more involved, better left to developer discretion at this point. Plan to add a package developer edited exclusion list in future.
