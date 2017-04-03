@@ -6,7 +6,7 @@ Update 8/2/2014: Visual studio console is published at [Visual Studio Gallery](h
 
 ### What's new with 3.1
 Having non-destructive edits to projects being resolved for unused references is now possible. 
-- When a project's references are resolved, a text editor is provided which shows all refernces that are about to be removed on each line.
+- When a project's references are resolved, a text editor is provided which shows all references that are about to be removed on each line.
 - User can exclude zero or all references by typing '#' at the beginning of the line. These ignored references are saved per project in a .refsignored file. Future attempts to clean will use this file to continue the same exclusions. *Note:* Please ensure to add refsignore to git ignore list so you don't get annoyed by this extra file.
 - After user decides which references to remove, a final confirmation for removal is followed by actual removal of references.
 - Nuget packages that are marked as development dependencies are excluded from removal.
