@@ -2,8 +2,6 @@
 
 * * *
 
-Update 8/1/2014: Visual studio extension is published at [Visual Studio Gallery](http://visualstudiogallery.msdn.microsoft.com/fe96c042-9a83-4fa2-921d-6b09aa044315)
-
 Update 8/2/2014: Visual studio console is published at [Visual Studio Gallery](http://visualstudiogallery.msdn.microsoft.com/faf25a06-0490-4eaf-82ab-c42b729a764e)
 
 Resolves project references for a Visual Studio Solution by **removing unused references** in each project of the solution.
@@ -30,10 +28,11 @@ With platform also specified, x86 for example looks only x86 .net msbuild versio
 
 ### Change and Version History
 
-*   12/17/2015 - v2.3 - Version for 2015
-*   8/23/2014 - v2.2 - Make package solution optional since getting it right is much more involved, better left to developer discretion at this point. Plan to add a package developer edited exclusion list in future.
-*   8/22/2014 - v2.1 - fixed regression bug. Resolution continued in spit of build errors
-*   8/15/2014 - v2.0 - Remove nuget package references as well as folders. v2.0
-*   8/5/2014 - v1.3 - Fixed couple of bugs and permissions issue
-*   8/2/2014 - Added setup project to install console app
-*   8/1/2014 - v1.0 - VSIX project added and extension published
+*   4/2/2017   	- v3.0 - Updated with a preview mode allowing exclusion and final confirmation before removal of references
+*   12/17/2015 	- v2.3 - Version for 2015
+*   8/23/2014 	- v2.2 - Make package solution optional since getting it right is much more involved, better left to developer discretion at this point. Plan to add a package developer edited exclusion list in future.
+*   8/22/2014 	- v2.1 - fixed regression bug. Resolution continued in spit of build errors
+*   8/15/2014 	- v2.0 - Remove nuget package references as well as folders. v2.0
+*   8/5/2014 	- v1.3 - Fixed couple of bugs and permissions issue
+*   8/2/2014 	- Added setup project to install console app
+*   8/1/2014 	- v1.0 - VSIX project added and extension published
