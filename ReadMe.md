@@ -1,7 +1,14 @@
 ## ResolveUR - Resolve Unused References
 
-Update 4/2/2017: Visual studio extension is published at [Visual Studio Gallery](http://visualstudiogallery.msdn.microsoft.com/e96c042-9a83-4fa2-921d-6b09aa044315)
+Update 4/2/2017: Visual studio extension is published at [Visual Studio Gallery](http://visualstudiogallery.msdn.microsoft.com/e96c042-9a83-4fa2-921d-6b09aa044315).
 
+### What's new with 3.1
+Having non-destructive edits to projects being resolved for unused references is now possible. 
+- When a project's references are resolved, a text editor is provided which shows all refernces that are about to be removed on each line.
+- User can exclude zero or all references by typing '#' at the beginning of the line. These ignored references are saved per project in a .refsignored file. Future attempts to clean will use this file to continue the same exclusions. *Note:* Please ensure to add refsignore to git ignore list so you don't get annoyed by this extra file.
+- After user decides which references to remove, a final confirmation for removal is followed by actual removal of references.
+
+### Introduction
 Resolves project references for a Visual Studio Solution by <b>removing unused references</b> in each project of the solution.
 
 This is done by removing a reference in a project, building project for errors and restoring removed reference if there were build errors.
