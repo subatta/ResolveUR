@@ -93,7 +93,8 @@
         {
             ProcessRefsFromFile();
 
-            RemoveNodesInProject();
+            RemoveNodesInProject(Reference);
+            RemoveNodesInProject(Project + Reference);
 
             if (ShouldResolvePackage)
                 ResolvePackages(_nodesToRemove);
@@ -217,8 +218,7 @@
                 var referenceNodeNames = item.ChildNodes.OfType<XmlNode>().Select(x => x.Attributes?[Include].Value);
                 var nodeNames = referenceNodeNames as IList<string> ?? referenceNodeNames.ToList();
 
-                nodesToRemove.AddRange(
-                    FindNodesToRemoveForItemGroup(projectXmlDocument, nodeNames, item, referenceType, itemIndex++));
+                nodesToRemove.AddRange(FindNodesToRemoveForItemGroup(projectXmlDocument, nodeNames, item, referenceType, itemIndex++));
             }
 
             // restore original project
@@ -230,7 +230,9 @@
 
         void ResolvePackages(IEnumerable<XmlNode> nodesToRemove)
         {
-            _packageConfig.Load();
+            if (!_packageConfig.Load())
+                return;
+
             foreach (var xmlNode in nodesToRemove)
             {
                 if (_isCancel)
@@ -289,13 +291,13 @@
             return nodesToRemove;
         }
 
-        void RemoveNodesInProject()
+        void RemoveNodesInProject(string referenceType)
         {
             var projectXmlDocument = GetXmlDocument();
 
             var itemIndex = 0;
             XmlNode item;
-            while (((item = GetReferenceGroupItemIn(projectXmlDocument, Reference, itemIndex++)) != null) &&
+            while (((item = GetReferenceGroupItemIn(projectXmlDocument, referenceType, itemIndex++)) != null) &&
                    item.ChildNodes.Count > 0)
             {
                 if (_isCancel)

@@ -3,7 +3,7 @@
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011"
                  xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="637ba02c-3388-4e54-9051-3eea7c51b054" Version="3.1" Language="en-US" Publisher="Suresh Batta" />
+    <Identity Id="637ba02c-3388-4e54-9051-3eea7c51b054" Version="3.3" Language="en-US" Publisher="Suresh Batta" />
     <DisplayName>ResolveUR - Resolve Unused References</DisplayName>
     <Description xml:space="preserve">Resolve unused references including nuget references in Visual Studio 2012/2013/2015 projects via menu item at solution and project nodes Solution Explorer Tool Window.</Description>
     <License>license.txt</License>
@@ -15,9 +15,9 @@
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[12.0]" />
     <InstallationTarget Version="[12.0,13.0)" Id="Microsoft.VisualStudio.Premium" />
     <InstallationTarget Version="[12.0,13.0)" Id="Microsoft.VisualStudio.Ultimate" />
-    <InstallationTarget Version="[14.0,15.0)" Id="Microsoft.VisualStudio.Community" />
-    <InstallationTarget Version="[14.0,15.0)" Id="Microsoft.VisualStudio.Enterprise" />
-    <InstallationTarget Version="[14.0,15.0)" Id="Microsoft.VisualStudio.Pro" />
+    <InstallationTarget Version="[14.0,17.0)" Id="Microsoft.VisualStudio.Community" />
+    <InstallationTarget Version="[14.0,17.0)" Id="Microsoft.VisualStudio.Enterprise" />
+    <InstallationTarget Version="[14.0,17.0)" Id="Microsoft.VisualStudio.Pro" />
   </Installation>
   <Dependencies>
     <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
@@ -28,4 +28,7 @@
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%"
            Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
   </Assets>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0.26208.0,16.0)" DisplayName="Visual Studio core editor" />
+  </Prerequisites>
 </PackageManifest>

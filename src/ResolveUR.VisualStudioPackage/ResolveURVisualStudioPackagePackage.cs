@@ -7,12 +7,10 @@
     using System.IO;
     using System.Runtime.InteropServices;
     using EnvDTE;
-    using EnvDTE80;
     using Microsoft.VisualStudio;
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Shell.Interop;
     using ResolveUR.Library;
-    using Constants = EnvDTE.Constants;
     using Thread = System.Threading.Thread;
 
     /// <summary>
@@ -127,7 +125,7 @@
 
         string GetSolutionName()
         {
-            var dte2 = GetService(typeof (SDTE)) as DTE2;
+            var dte2 = GetService(typeof (SDTE)) as DTE;
 
             var solutionObject = dte2?.Solution;
             if (solutionObject == null)
@@ -142,7 +140,7 @@
 
         string GetProjectName()
         {
-            var dte2 = GetService(typeof (SDTE)) as DTE2;
+            var dte2 = GetService(typeof (SDTE)) as DTE;
 
             var activeProjects = (Array) dte2?.ActiveSolutionProjects;
             if (activeProjects == null || activeProjects.Length == 0)
@@ -192,11 +190,11 @@
 
         void CreateOutputWindow()
         {
-            var dte2 = GetService(typeof (SDTE)) as DTE2;
+            var dte2 = GetService(typeof (SDTE)) as DTE;
             if (dte2 == null)
                 return;
 
-            var window = dte2.Windows.Item(Constants.vsWindowKindOutput);
+            var window = dte2.Windows.Item(EnvDTE.Constants.vsWindowKindOutput);
             var outputWindow = (OutputWindow) window.Object;
             OutputWindowPane outputWindowPane = null;
 
