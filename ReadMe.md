@@ -1,6 +1,9 @@
 ## ResolveUR - Resolve Unused References
 
-Update 4/2/2017: Visual studio extension is published at [Visual Studio Gallery](http://visualstudiogallery.msdn.microsoft.com/e96c042-9a83-4fa2-921d-6b09aa044315).
+3.3: Fixed regression bug, project references not being cleaned. 
+3.2: VS 2017 release, bug fix for no package config case.
+
+Update 4/2/2017: Visual studio extension is published at [Visual Studio Gallery](https://marketplace.visualstudio.com/items?itemName=battas.ResolveUR-ResolveUnusedReferences)
 
 ### What's new with 3.1
 Having non-destructive edits to projects being resolved for unused references is now possible. 
