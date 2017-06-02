@@ -1,5 +1,7 @@
 ﻿namespace ResolveUR.Library
 {
+    using System;
+    using System.Collections.Generic;
     using System.IO;
 
     public class MsBuildResolveUR
@@ -21,6 +23,7 @@
                     case Constants.X64:
                         path = GetX64Path();
                         break;
+
                     case Constants.X86:
                         path = GetX86Path();
                         break;
@@ -33,42 +36,44 @@
             return path;
         }
 
-        static string GetX86Path()
+        private static string GetX64Path()
         {
-            if (File.Exists(Constants.Msbuildx86V14))
-                return Constants.Msbuildx86V14;
-
-            if (File.Exists(Constants.Msbuildx86V12))
-                return Constants.Msbuildx86V12;
-
-            if (File.Exists(Constants.Msbuildx8640))
-                return Constants.Msbuildx8640;
-
-            if (File.Exists(Constants.Msbuildx8635))
-                return Constants.Msbuildx8635;
-
-            if (File.Exists(Constants.Msbuildx8620))
-                return Constants.Msbuildx8620;
-
-            return null;
+            return GetPath(new List<string>
+            {
+                Constants.Msbuildx64VSCmd,
+                Constants.Msbuildx64VS,
+                Constants.Msbuildx64V14,
+                Constants.Msbuildx64V12,
+                Constants.Msbuildx6440,
+                Constants.Msbuildx6435,
+                Constants.Msbuildx6420
+            });
         }
 
-        static string GetX64Path()
+        private static string GetX86Path()
         {
-            if (File.Exists(Constants.Msbuildx64V14))
-                return Constants.Msbuildx64V14;
+            return GetPath(new List<string>
+            {
+                Constants.Msbuildx86VSCmd,
+                Constants.Msbuildx86VS,
+                Constants.Msbuildx86V14,
+                Constants.Msbuildx86V12,
+                Constants.Msbuildx8640,
+                Constants.Msbuildx8635,
+                Constants.Msbuildx8620
+            });
+        }
 
-            if (File.Exists(Constants.Msbuildx64V12))
-                return Constants.Msbuildx64V12;
-
-            if (File.Exists(Constants.Msbuildx6440))
-                return Constants.Msbuildx6440;
-
-            if (File.Exists(Constants.Msbuildx6435))
-                return Constants.Msbuildx6435;
-
-            if (File.Exists(Constants.Msbuildx6420))
-                return Constants.Msbuildx6420;
+        private static string GetPath(List<string> searchPaths)
+        {
+            foreach (var path in searchPaths)
+            {
+                var msbuildPath = Environment.ExpandEnvironmentVariables(path);
+                if (File.Exists(msbuildPath))
+                {
+                    return msbuildPath;
+                }
+            }
 
             return null;
         }
