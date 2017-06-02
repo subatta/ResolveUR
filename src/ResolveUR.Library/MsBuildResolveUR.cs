@@ -36,7 +36,7 @@
             return path;
         }
 
-        private static string GetX86Path()
+        static string GetX86Path()
         {
             return GetPath(new List<string>
             {
@@ -50,7 +50,7 @@
             });
         }
 
-        private static string GetX64Path()
+        static string GetX64Path()
         {
             return GetPath(new List<string>
             {
@@ -64,15 +64,13 @@
             });
         }
 
-        private static string GetPath(List<string> searchPaths)
+        static string GetPath(List<string> searchPaths)
         {
             foreach (var path in searchPaths)
             {
                 var msbuildPath = Environment.ExpandEnvironmentVariables(path);
                 if (File.Exists(msbuildPath))
-                {
                     return msbuildPath;
-                }
             }
 
             return null;
