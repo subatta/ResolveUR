@@ -1,5 +1,5 @@
 ## ResolveUR - Resolve Unused References
-
+- 3.4: Added VS2017 install paths for latest MSBuild support
 - 3.3: Fixed regression bug, project references not being cleaned.
 - 3.2: VS 2017 release, bug fix for no package config case.
 
