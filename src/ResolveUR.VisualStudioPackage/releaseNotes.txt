@@ -1,3 +1,4 @@
+6/05/2017: Added VS2017 install paths for latest MSBuild support
 4/15/2017: Fixed project references not removed.
 4/13/2017: Fixed error due to non-existent packages.config file.
 Unused References are presented in machine's default text editor and allows excluding references from removal. 
