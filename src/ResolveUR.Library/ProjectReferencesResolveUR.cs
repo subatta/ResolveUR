@@ -70,6 +70,7 @@
             if (_isCancel)
                 return;
 
+            _refsIgnoredFileManager.NodesToRemove = _nodesToRemove;
             _refsIgnoredFileManager.WriteRefsToFile();
 
             if (_isCancel)
