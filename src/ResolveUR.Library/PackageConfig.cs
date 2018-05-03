@@ -40,7 +40,8 @@
             if (packageNodes == null)
                 return false;
 
-            foreach (var node in packageNodes.Cast<XmlNode>().Where(node => node.Attributes != null && node.Attributes[DevelopmentDependency] == null))
+            foreach (var node in packageNodes.Cast<XmlNode>()
+                .Where(node => node.Attributes != null && node.Attributes[DevelopmentDependency] == null))
                 _packages.Add($"{node.Attributes[Id].Value}.{node.Attributes[Version].Value}", node);
 
             // when references are cleaned up later, store package nodes that match hint paths for references that are ok to keep

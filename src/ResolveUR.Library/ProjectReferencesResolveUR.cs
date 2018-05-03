@@ -13,27 +13,21 @@
         const string Include = "Include";
         const string Reference = "Reference";
         const string Project = "Project";
-        const char IgnoreChar = '#';
 
         static readonly string TempPath = Path.GetTempPath();
-        static readonly string RefsReviewFilePath = $@"{TempPath}\\refs.txt";
 
         string _filePath;
         bool _isCancel;
         List<XmlNode> _nodesToRemove;
         PackageConfig _packageConfig;
-
-        public string RefsIgnorePath => $"{Path.GetDirectoryName(FilePath)}\\.refsignored";
+        RefsIgnoredFileManager _refsIgnoredFileManager;
 
         public event HasBuildErrorsEventHandler HasBuildErrorsEvent;
         public event ProjectResolveCompleteEventHandler ProjectResolveCompleteEvent;
 
         public string FilePath
         {
-            get
-            {
-                return _filePath;
-            }
+            get => _filePath;
             set
             {
                 _filePath = value;
@@ -46,6 +40,8 @@
                     FilePath = value,
                     PackageConfigPath = dirPath + "\\packages.config"
                 };
+
+                _refsIgnoredFileManager = new RefsIgnoredFileManager(_filePath);
             }
         }
 
@@ -74,12 +70,12 @@
             if (_isCancel)
                 return;
 
-            WriteRefsToFile();
+            _refsIgnoredFileManager.WriteRefsToFile();
 
             if (_isCancel)
                 return;
 
-            LaunchRefsFile();
+            _refsIgnoredFileManager.LaunchRefsFile();
 
             ProjectResolveCompleteEvent?.Invoke();
         }
@@ -91,113 +87,13 @@
 
         public void Clean()
         {
-            ProcessRefsFromFile();
+            _refsIgnoredFileManager.ProcessRefsFromFile();
 
             RemoveNodesInProject(Reference);
             RemoveNodesInProject(Project + Reference);
 
             if (ShouldResolvePackage)
                 ResolvePackages(_nodesToRemove);
-        }
-
-        /// <summary>
-        ///     Writes references to be removed to a temp file inluding marking already ignored refs
-        /// </summary>
-        void WriteRefsToFile()
-        {
-            var ignored = LoadIgnoredRefs();
-            using (var sw = new StreamWriter(RefsReviewFilePath))
-            {
-                sw.WriteLine($"### The project \"{Path.GetFileNameWithoutExtension(FilePath)}\" is being resolved...");
-                sw.WriteLine(
-                    $"### Please Prefix Reference Line to exclude with ONE pound sign! If you've previously ignored any and those are found, they are pre-marked.");
-                foreach (var xmlNode in _nodesToRemove)
-                {
-                    var refIgnored = $"{IgnoreChar}{xmlNode.Attributes[0].Value}";
-                    sw.WriteLine(ignored.Contains(refIgnored) ? refIgnored : xmlNode.Attributes[0].Value);
-                }
-            }
-        }
-
-        void LaunchRefsFile()
-        {
-            var process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    UseShellExecute = true,
-                    FileName = RefsReviewFilePath
-                }
-            };
-
-            process.Start();
-            process.WaitForExit();
-        }
-
-        void ProcessRefsFromFile()
-        {
-            var refsSelectedToRemove = new List<string>();
-            var refsIgnored = new List<string>();
-            using (var sr = new StreamReader(RefsReviewFilePath))
-            {
-                string line;
-                while (!IsNullOrWhiteSpace(line = sr.ReadLine()))
-                {
-                    if (line.StartsWith(new string(IgnoreChar, 3)))
-                        continue;
-
-                    if (line.StartsWith(IgnoreChar.ToString()))
-                        refsIgnored.Add(line);
-                    else
-                        refsSelectedToRemove.Add(line);
-                }
-            }
-
-            // append distinct ignored refs to .refsignored in project folder.
-            var existingRefsIgnored = LoadIgnoredRefs();
-            foreach (var existing in existingRefsIgnored)
-            {
-                if (!refsIgnored.Contains(existing))
-                    refsIgnored.Add(existing);
-            }
-            WriteRefsIgnored(refsIgnored);
-
-            var finalRefsToRemove = refsSelectedToRemove.Except(existingRefsIgnored).ToList();
-
-            // trim final node list
-            for (var i = 0; i < _nodesToRemove.Count; i++)
-            {
-                if (!finalRefsToRemove.Contains(_nodesToRemove[i].Attributes[0].Value))
-                    _nodesToRemove[i] = null;
-            }
-
-            _nodesToRemove.RemoveAll(x => x == null);
-        }
-
-        List<string> LoadIgnoredRefs()
-        {
-            var refsIgnored = new List<string>();
-
-            if (!File.Exists(RefsIgnorePath))
-                return refsIgnored;
-
-            using (var sr = new StreamReader(RefsIgnorePath))
-            {
-                string line = null;
-                while (!IsNullOrWhiteSpace(line = sr.ReadLine()))
-                    refsIgnored.Add(line);
-            }
-
-            return refsIgnored;
-        }
-
-        void WriteRefsIgnored(IEnumerable<string> list)
-        {
-            using (var sw = new StreamWriter(RefsIgnorePath))
-            {
-                foreach (var i in list)
-                    sw.WriteLine(i);
-            }
         }
 
         List<XmlNode> Resolve(string referenceType)
@@ -208,7 +104,7 @@
 
             var itemIndex = 0;
             XmlNode item;
-            while (((item = GetReferenceGroupItemIn(projectXmlDocument, referenceType, itemIndex)) != null) &&
+            while ((item = GetReferenceGroupItemIn(projectXmlDocument, referenceType, itemIndex)) != null &&
                    item.ChildNodes.Count > 0)
             {
                 if (_isCancel)
@@ -218,7 +114,8 @@
                 var referenceNodeNames = item.ChildNodes.OfType<XmlNode>().Select(x => x.Attributes?[Include].Value);
                 var nodeNames = referenceNodeNames as IList<string> ?? referenceNodeNames.ToList();
 
-                nodesToRemove.AddRange(FindNodesToRemoveForItemGroup(projectXmlDocument, nodeNames, item, referenceType, itemIndex++));
+                nodesToRemove.AddRange(
+                    FindNodesToRemoveForItemGroup(projectXmlDocument, nodeNames, item, referenceType, itemIndex++));
             }
 
             // restore original project
@@ -259,9 +156,8 @@
                 if (_isCancel)
                     break;
 
-                var nodeToRemove =
-                    item.ChildNodes.Cast<XmlNode>().FirstOrDefault(
-                        i => i.Attributes != null && i.Attributes[Include].Value == referenceNodeName);
+                var nodeToRemove = item.ChildNodes.Cast<XmlNode>()
+                    .FirstOrDefault(i => i.Attributes != null && i.Attributes[Include].Value == referenceNodeName);
 
                 if (nodeToRemove?.ParentNode == null)
                     continue;
@@ -297,19 +193,21 @@
 
             var itemIndex = 0;
             XmlNode item;
-            while (((item = GetReferenceGroupItemIn(projectXmlDocument, referenceType, itemIndex++)) != null) &&
+            while ((item = GetReferenceGroupItemIn(projectXmlDocument, referenceType, itemIndex++)) != null &&
                    item.ChildNodes.Count > 0)
             {
                 if (_isCancel)
                     break;
 
-                for (var i = 0; i < item.ChildNodes.Count; i++)
+                for (var i = 0; i < item.ChildNodes.Count;)
                 {
                     if (_isCancel)
                         break;
 
                     if (_nodesToRemove.Any(x => x.Attributes[0].Value == item.ChildNodes[i].Attributes[0].Value))
                         item.RemoveChild(item.ChildNodes[i]);
+                    else
+                        i++;
                 }
             }
 

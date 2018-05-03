@@ -25,8 +25,10 @@
             // 3rd arg can be platform - x86 or x64
             var platform = string.Empty;
             if (args.Length >= 3 &&
-                (string.Equals(args[2], Constants.X86, StringComparison.InvariantCultureIgnoreCase) ||
-                 string.Equals(args[2], Constants.X64, StringComparison.InvariantCultureIgnoreCase)))
+                (string.Equals(args[2], Constants.X86, StringComparison.InvariantCultureIgnoreCase) || string.Equals(
+                     args[2],
+                     Constants.X64,
+                     StringComparison.InvariantCultureIgnoreCase)))
                 platform = args[2];
 
             return new ResolveUROptions

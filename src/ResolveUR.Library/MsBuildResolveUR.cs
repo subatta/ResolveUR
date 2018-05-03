@@ -38,30 +38,32 @@
 
         static string GetX86Path()
         {
-            return GetPath(new List<string>
-            {
-                Constants.Msbuildx86VSCmd,
-                Constants.Msbuildx86VS,
-                Constants.Msbuildx86V14,
-                Constants.Msbuildx86V12,
-                Constants.Msbuildx8640,
-                Constants.Msbuildx8635,
-                Constants.Msbuildx8620
-            });
+            return GetPath(
+                new List<string>
+                {
+                    Constants.Msbuildx86VSCmd,
+                    Constants.Msbuildx86VS,
+                    Constants.Msbuildx86V14,
+                    Constants.Msbuildx86V12,
+                    Constants.Msbuildx8640,
+                    Constants.Msbuildx8635,
+                    Constants.Msbuildx8620
+                });
         }
 
         static string GetX64Path()
         {
-            return GetPath(new List<string>
-            {
-                Constants.Msbuildx64VSCmd,
-                Constants.Msbuildx64VS,
-                Constants.Msbuildx64V14,
-                Constants.Msbuildx64V12,
-                Constants.Msbuildx6440,
-                Constants.Msbuildx6435,
-                Constants.Msbuildx6420
-            });
+            return GetPath(
+                new List<string>
+                {
+                    Constants.Msbuildx64VSCmd,
+                    Constants.Msbuildx64VS,
+                    Constants.Msbuildx64V14,
+                    Constants.Msbuildx64V12,
+                    Constants.Msbuildx6440,
+                    Constants.Msbuildx6435,
+                    Constants.Msbuildx6420
+                });
         }
 
         static string GetPath(List<string> searchPaths)

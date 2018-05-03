@@ -19,6 +19,6 @@ _ReSharper.*
 *.resharper
 *.dtsconfig
 *.[Cc]onfig
-
+.vs
 # mstest test results
 TestResults

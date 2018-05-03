@@ -1,7 +1,7 @@
-﻿<ui:DialogWindow x:Class="ResolveURVisualStudioPackage.PackageDialog"
+﻿<platformUi:DialogWindow x:Class="ResolveURVisualStudioPackage.PackageDialog"
                  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                 xmlns:ui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.12.0"
+                 xmlns:platformUi="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
                  Title="Resolve Packages Dialog" Height="100" Width="300" WindowStartupLocation="CenterOwner">
     <Grid Height="60" Width="300">
         <Label Content="Would you like to resolve Nuget packages as well?" Height="25" Name="QuestionLabel"
@@ -11,4 +11,4 @@
         <Button Content="No" Name="BtnNo" Click="btnNo_Click" Height="25" Width="75" HorizontalAlignment="Left"
                 Margin="210,30,0,0" />
     </Grid>
-</ui:DialogWindow>
+</platformUi:DialogWindow>

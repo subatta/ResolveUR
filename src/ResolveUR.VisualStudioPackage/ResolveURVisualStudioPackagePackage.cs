@@ -11,6 +11,7 @@
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Shell.Interop;
     using ResolveUR.Library;
+    using Constants = EnvDTE.Constants;
     using Thread = System.Threading.Thread;
 
     /// <summary>
@@ -125,7 +126,7 @@
 
         string GetSolutionName()
         {
-            var dte2 = GetService(typeof (SDTE)) as DTE;
+            var dte2 = GetService(typeof(SDTE)) as DTE;
 
             var solutionObject = dte2?.Solution;
             if (solutionObject == null)
@@ -140,7 +141,7 @@
 
         string GetProjectName()
         {
-            var dte2 = GetService(typeof (SDTE)) as DTE;
+            var dte2 = GetService(typeof(SDTE)) as DTE;
 
             var activeProjects = (Array) dte2?.ActiveSolutionProjects;
             if (activeProjects == null || activeProjects.Length == 0)
@@ -166,7 +167,7 @@
             base.Initialize();
 
             // Add our command handlers for menu (commands must exist in the .vsct file)
-            var mcs = GetService(typeof (IMenuCommandService)) as OleMenuCommandService;
+            var mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
             if (null == mcs)
                 return;
 
@@ -190,21 +191,20 @@
 
         void CreateOutputWindow()
         {
-            var dte2 = GetService(typeof (SDTE)) as DTE;
+            var dte2 = GetService(typeof(SDTE)) as DTE;
             if (dte2 == null)
                 return;
 
-            var window = dte2.Windows.Item(EnvDTE.Constants.vsWindowKindOutput);
+            var window = dte2.Windows.Item(Constants.vsWindowKindOutput);
             var outputWindow = (OutputWindow) window.Object;
             OutputWindowPane outputWindowPane = null;
 
             const string outputWindowName = "Output";
             for (uint i = 1; i <= outputWindow.OutputWindowPanes.Count; i++)
             {
-                if (
-                    !outputWindow.OutputWindowPanes.Item(i).Name.Equals(
-                        outputWindowName,
-                        StringComparison.CurrentCultureIgnoreCase))
+                if (!outputWindow.OutputWindowPanes.Item(i).Name.Equals(
+                    outputWindowName,
+                    StringComparison.CurrentCultureIgnoreCase))
                     continue;
 
                 outputWindowPane = outputWindow.OutputWindowPanes.Item(i);
@@ -221,13 +221,12 @@
 
         void CreateProgressDialog()
         {
-            var dialogFactory = GetService(typeof (SVsThreadedWaitDialogFactory)) as IVsThreadedWaitDialogFactory;
+            var dialogFactory = GetService(typeof(SVsThreadedWaitDialogFactory)) as IVsThreadedWaitDialogFactory;
             IVsThreadedWaitDialog2 progressDialog = null;
             if (dialogFactory != null)
                 dialogFactory.CreateInstance(out progressDialog);
 
-            if (progressDialog != null &&
-                progressDialog.StartWaitDialog(
+            if (progressDialog != null && progressDialog.StartWaitDialog(
                     ResolveUR.Library.Constants.AppName + " Working...",
                     "Visual Studio is busy. Cancel ResolveUR by clicking Cancel button",
                     string.Empty,
@@ -253,7 +252,7 @@
 
         void CreateUiShell()
         {
-            _helper.UiShell = (IVsUIShell) GetService(typeof (SVsUIShell));
+            _helper.UiShell = (IVsUIShell) GetService(typeof(SVsUIShell));
         }
 
         #endregion

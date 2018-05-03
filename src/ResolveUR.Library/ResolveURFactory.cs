@@ -28,10 +28,8 @@
                 return new SolutionReferencesResolveUR(resolveUr);
 
             if (resolveUr == null)
-            {
                 throw new InvalidDataException(
                     "The file path supplied(arg 0) must either be a solution or project file");
-            }
 
             return resolveUr;
         }
