@@ -103,7 +103,7 @@
 
             using (var sr = new StreamReader(RefsIgnorePath))
             {
-                string line = null;
+                string line;
                 while (!IsNullOrWhiteSpace(line = sr.ReadLine()))
                     refsIgnored.Add(line);
             }
