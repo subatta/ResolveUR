@@ -55,7 +55,7 @@
             if (referenceNode.ChildNodes.Count == 0)
                 return;
 
-            var hintPath = getHintPath(referenceNode);
+            var hintPath = GetHintPath(referenceNode);
             foreach (var package in _packages)
             {
                 if (!hintPath.Contains(package.Key))
@@ -81,7 +81,7 @@
             }
         }
 
-        string getHintPath(XmlNode referenceNode)
+        string GetHintPath(XmlNode referenceNode)
         {
             var node = referenceNode.ChildNodes.OfType<XmlNode>().FirstOrDefault(x => x.Name == "HintPath");
             return node == null ? string.Empty : node.InnerXml;

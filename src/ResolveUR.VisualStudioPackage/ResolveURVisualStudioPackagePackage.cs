@@ -1,19 +1,19 @@
-﻿namespace ResolveURVisualStudioPackage
-{
-    using System;
-    using System.ComponentModel.Design;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.IO;
-    using System.Runtime.InteropServices;
-    using EnvDTE;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using ResolveUR.Library;
-    using Constants = EnvDTE.Constants;
-    using Thread = System.Threading.Thread;
+﻿using System;
+using System.ComponentModel.Design;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Runtime.InteropServices;
+using EnvDTE;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using ResolveUR.Library;
+using Constants = EnvDTE.Constants;
+using Thread = System.Threading.Thread;
 
+namespace ResolveURVisualStudioPackage
+{
     /// <summary>
     ///     is the class that implements the package exposed by assembly.
     ///     The minimum requirement for a class to be considered a valid package for Visual Studio
@@ -77,7 +77,7 @@
                 {
                     MsBuilderPath = MsBuildResolveUR.FindMsBuildPath(),
                     FilePath = activeFileNameGetter(),
-                    ShouldResolvePackages = packageOption()
+                    ShouldResolvePackages = PackageOption()
                 };
 
                 if (string.IsNullOrEmpty(options.FilePath))
@@ -110,14 +110,14 @@
             }
         }
 
-        bool packageOption()
+        bool PackageOption()
         {
             var packageResolveOptionDialog = new PackageDialog();
             packageResolveOptionDialog.ShowModal();
             return packageResolveOptionDialog.IsResolvePackage;
         }
 
-        bool removeConfirmed()
+        bool RemoveConfirmed()
         {
             var removeConfirmDialog = new RemoveConfirmDialog();
             removeConfirmDialog.ShowModal();
@@ -270,7 +270,7 @@
 
         void resolveur_ProjectResolveCompleteEvent()
         {
-            if (removeConfirmed())
+            if (RemoveConfirmed())
                 _resolveur.Clean();
         }
 

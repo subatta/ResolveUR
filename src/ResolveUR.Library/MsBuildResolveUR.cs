@@ -1,37 +1,46 @@
-﻿namespace ResolveUR.Library
-{
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
+﻿using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.IO;
+using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.Setup.Configuration;
+using System.Diagnostics;
 
+namespace ResolveUR.Library
+{
     public class MsBuildResolveUR
     {
         public static string FindMsBuildPath(string platform = "")
         {
-            var path = string.Empty;
-            if (string.IsNullOrWhiteSpace(platform))
-            {
-                path = GetX64Path();
-                if (string.IsNullOrWhiteSpace(path))
-                    path = GetX86Path();
-            }
-            else
-            {
-                // if user specified platform look by it
-                switch (platform)
-                {
-                    case Constants.X64:
-                        path = GetX64Path();
-                        break;
+            var path = FindInstallationMSBuildPath();
 
-                    case Constants.X86:
+            // If the new method fails, use the old methods.
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                if (string.IsNullOrWhiteSpace(platform))
+                {
+                    path = GetX64Path();
+                    if (string.IsNullOrWhiteSpace(path))
                         path = GetX86Path();
-                        break;
+                }
+                else
+                {
+                    // if user specified platform look by it
+                    switch (platform)
+                    {
+                        case Constants.X64:
+                            path = GetX64Path();
+                            break;
+
+                        case Constants.X86:
+                            path = GetX86Path();
+                            break;
+                    }
                 }
             }
 
             if (string.IsNullOrWhiteSpace(path))
-                throw new FileNotFoundException("MsBuild not found on system!");
+                throw new FileNotFoundException("MsBuild.exe not found on system!");
 
             return path;
         }
@@ -41,6 +50,7 @@
             return GetPath(
                 new List<string>
                 {
+                    Constants.Msbuildx86VSCurrent,
                     Constants.Msbuildx86VSCmd,
                     Constants.Msbuildx86VS,
                     Constants.Msbuildx86V14,
@@ -56,6 +66,7 @@
             return GetPath(
                 new List<string>
                 {
+                    Constants.Msbuildx64VSCurrent,
                     Constants.Msbuildx64VSCmd,
                     Constants.Msbuildx64VS,
                     Constants.Msbuildx64V14,
@@ -76,6 +87,46 @@
             }
 
             return null;
+        }
+
+
+
+        private const int REGDB_E_CLASSNOTREG = unchecked((int)0x80040154);
+
+        /// <summary>
+        ///     Find MSBuild using Microsoft.VisualStudio.Setup.Configuration
+        /// </summary>
+        /// <returns>The path to MS-Build found.</returns>
+        internal static string FindInstallationMSBuildPath()
+        {
+            try
+            {
+                var query = new SetupConfiguration();
+                var allInstances = query.EnumAllInstances();
+
+                string foundPath = "";
+                var instances = new ISetupInstance[1];
+                allInstances.Next(1, instances, out int fetched);
+                while (fetched > 0)
+                {
+                    foundPath = instances[0].GetInstallationPath();
+                    allInstances.Next(1, instances, out fetched);
+                };
+
+                var msBuildPath = Path.Combine(foundPath, "MSBuild");
+
+                return Directory.EnumerateFiles(msBuildPath, "MSBuild.exe", SearchOption.AllDirectories).First();
+            }
+            catch (COMException ex) when (ex.HResult == REGDB_E_CLASSNOTREG)
+            {
+                Debug.WriteLine("The query API is not registered. Assuming no instances are installed.");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error 0x{ex.HResult:x8}: {ex.Message}");
+                return null;
+            }
         }
     }
 }
