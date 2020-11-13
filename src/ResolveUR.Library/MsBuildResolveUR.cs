@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace ResolveUR.Library
 {
-    public class MsBuildResolveUR
+    public static class MsBuildResolveUR
     {
         public static string FindMsBuildPath(string platform = "")
         {
@@ -120,11 +120,6 @@ namespace ResolveUR.Library
             catch (COMException ex) when (ex.HResult == REGDB_E_CLASSNOTREG)
             {
                 Debug.WriteLine("The query API is not registered. Assuming no instances are installed.");
-                return null;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error 0x{ex.HResult:x8}: {ex.Message}");
                 return null;
             }
         }

@@ -1,6 +1,6 @@
 ﻿namespace ResolveUR.Library
 {
-    public class Constants
+    public static class Constants
     {
         public const string AppName = "ResolveUR";
 
