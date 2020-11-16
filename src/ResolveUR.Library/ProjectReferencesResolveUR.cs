@@ -218,7 +218,6 @@
         XmlDocument GetXmlDocument()
         {
             var doc = new XmlDocument() { XmlResolver = null };
-            //StringReader sreader = new StringReader(FilePath);
             using (XmlReader reader = XmlReader.Create(FilePath, new XmlReaderSettings() { XmlResolver = null }))
                 doc.Load(reader);
 

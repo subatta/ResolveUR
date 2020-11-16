@@ -12,7 +12,7 @@ namespace ResolveUR.Tests
         [TestMethod]
         public void TestGetXmlDocument()
         {
-            string solutionFolder = Directory.GetParent(System.IO.Directory.GetCurrentDirectory()).Parent.Parent.FullName;
+            string solutionFolder = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
             string solutionPath = Path.Combine(solutionFolder, "ResolveUR.sln");
             ResolveUROptions resolveUrOptions = new ResolveUROptions {
                 FilePath = solutionPath,

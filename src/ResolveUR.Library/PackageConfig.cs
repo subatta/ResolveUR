@@ -32,8 +32,7 @@
                 return false;
 
             _packageConfigDocument = new XmlDocument() { XmlResolver = null };
-            StringReader sreader = new StringReader(PackageConfigPath);
-            using( XmlReader reader = XmlReader.Create(sreader, new XmlReaderSettings() { XmlResolver = null }))
+            using (XmlReader reader = XmlReader.Create(PackageConfigPath, new XmlReaderSettings() { XmlResolver = null }))
                 _packageConfigDocument.Load(reader);
      
             var packageNodes = _packageConfigDocument.SelectNodes(PackageNode);
