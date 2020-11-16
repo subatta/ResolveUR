@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-//using ResolveUR.Console;
 using ResolveUR.Library;
-//using ResolveUR.VSIXPackage;
 
 namespace ResolveUR.Tests
 {
@@ -30,7 +27,8 @@ namespace ResolveUR.Tests
                 ResolveurHasBuildErrorsEvent,
                 ResolveurProjectResolveCompleteEvent);
 
-            _resolveur.Resolve();
+            // TODO: Why does Resolve delete? This should be a separate method!
+            //_resolveur.Resolve();
         }
 
         static void ResolveurHasBuildErrorsEvent(string projectName)
