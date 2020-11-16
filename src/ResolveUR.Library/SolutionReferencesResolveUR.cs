@@ -44,7 +44,7 @@
             _isCancel = true;
         }
 
-        IEnumerable<string> LoadProjects(string solutionPath)
+        static IEnumerable<string> LoadProjects(string solutionPath)
         {
             const string projectRegEx = "Project\\(\"\\{[\\w-]*\\}\"\\) = \"([\\w _]*.*)\", \"(.*\\.(cs|vcx|vb)proj)\"";
             var content = File.ReadAllText(solutionPath);

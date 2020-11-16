@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30621.155
@@ -9,9 +9,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResolveUR.Library", "Resolv
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResolveUR.Console", "ResolveUR.Console\ResolveUR.Console.csproj", "{B35D0280-1D2B-4F02-984B-0009C4B6FF6F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResolveUR.VisualStudioPackage", "ResolveUR.VisualStudioPackage\ResolveUR.VisualStudioPackage.csproj", "{43F08650-7B06-457B-BBC3-943EE478462D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResolveUR.VSIXPackage", "ResolveUR.VSIXPackage\ResolveUR.VSIXPackage.csproj", "{43F08650-7B06-457B-BBC3-943EE478462D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.ResolveUR.Library", "Test.ResolveUR.Library\Test.ResolveUR.Library.csproj", "{7A5D3AB3-3F69-4ECE-B69E-9582FD782EA4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResolveUR.Tests", "ResolveUR.Tests\ResolveUR.Tests.csproj", "{7A5D3AB3-3F69-4ECE-B69E-9582FD782EA4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

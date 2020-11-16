@@ -12,7 +12,7 @@ using ResolveUR.Library;
 using Constants = EnvDTE.Constants;
 using Thread = System.Threading.Thread;
 
-namespace ResolveURVisualStudioPackage
+namespace ResolveUR.VSIXPackage
 {
     /// <summary>
     ///     is the class that implements the package exposed by assembly.
@@ -33,7 +33,7 @@ namespace ResolveURVisualStudioPackage
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(GuidList.GuidResolveUrVisualStudioPackagePkgString)]
     // ReSharper disable once InconsistentNaming - Product Name
-    public sealed class ResolveURVisualStudioPackagePackage : Package
+    public sealed class ResolveURVSIXPackage : Package
     {
         /// <summary>
         ///     Default constructor of the package.
@@ -42,7 +42,7 @@ namespace ResolveURVisualStudioPackage
         ///     not sited yet inside Visual Studio environment. The place to do all the other
         ///     initialization is the Initialize method.
         /// </summary>
-        public ResolveURVisualStudioPackagePackage()
+        public ResolveURVSIXPackage()
         {
             Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", ToString()));
         }
@@ -85,10 +85,10 @@ namespace ResolveURVisualStudioPackage
 
                 _resolveur = ResolveURFactory.GetResolver(
                     options,
-                    resolveur_HasBuildErrorsEvent,
-                    resolveur_ProjectResolveCompleteEvent);
+                    Resolveur_HasBuildErrorsEvent,
+                    Resolveur_ProjectResolveCompleteEvent);
 
-                _helper.ResolveurCanceled += helper_ResolveurCanceled;
+                _helper.ResolveurCanceled += Helper_ResolveurCanceled;
 
                 _resolveur.Resolve();
             }
@@ -110,21 +110,21 @@ namespace ResolveURVisualStudioPackage
             }
         }
 
-        bool PackageOption()
+        static bool PackageOption()
         {
             var packageResolveOptionDialog = new PackageDialog();
             packageResolveOptionDialog.ShowModal();
             return packageResolveOptionDialog.IsResolvePackage;
         }
 
-        bool RemoveConfirmed()
+        static bool RemoveConfirmed()
         {
             var removeConfirmDialog = new RemoveConfirmDialog();
             removeConfirmDialog.ShowModal();
             return removeConfirmDialog.IsRemoveConfirm;
         }
 
-        string GetSolutionName()
+        public string GetSolutionName()
         {
             var dte2 = GetService(typeof(SDTE)) as DTE;
 
@@ -139,15 +139,15 @@ namespace ResolveURVisualStudioPackage
             return solution;
         }
 
-        string GetProjectName()
+        public string GetProjectName()
         {
             var dte2 = GetService(typeof(SDTE)) as DTE;
 
-            var activeProjects = (Array) dte2?.ActiveSolutionProjects;
+            var activeProjects = (Array)dte2?.ActiveSolutionProjects;
             if (activeProjects == null || activeProjects.Length == 0)
                 return string.Empty;
 
-            var project = (Project) activeProjects.GetValue(0);
+            var project = (Project)activeProjects.GetValue(0);
 
             return project.FileName;
         }
@@ -167,19 +167,18 @@ namespace ResolveURVisualStudioPackage
             base.Initialize();
 
             // Add our command handlers for menu (commands must exist in the .vsct file)
-            var mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
-            if (null == mcs)
+            if (!(GetService(typeof(IMenuCommandService)) is OleMenuCommandService mcs))
                 return;
 
             // Create the command for the menu item.
             var menuCommandId = new CommandID(
                 GuidList.GuidResolveUrVisualStudioPackageCmdSet,
-                (int) PkgCmdIdList.CmdRemoveUnusedProjectReferences);
+                (int)PkgCmdIdList.CmdRemoveUnusedProjectReferences);
             var menuItem = new MenuCommand(ProjectMenuItemCallback, menuCommandId);
             mcs.AddCommand(menuItem);
             menuCommandId = new CommandID(
                 GuidList.GuidResolveUrVisualStudioPackageCmdSet,
-                (int) PkgCmdIdList.CmdRemoveUnusedSolutionReferences);
+                (int)PkgCmdIdList.CmdRemoveUnusedSolutionReferences);
             menuItem = new MenuCommand(SolutionMenuItemCallback, menuCommandId);
             mcs.AddCommand(menuItem);
             _helper = new Helper();
@@ -191,12 +190,11 @@ namespace ResolveURVisualStudioPackage
 
         void CreateOutputWindow()
         {
-            var dte2 = GetService(typeof(SDTE)) as DTE;
-            if (dte2 == null)
+            if (!(GetService(typeof(SDTE)) is DTE dte2))
                 return;
 
             var window = dte2.Windows.Item(Constants.vsWindowKindOutput);
-            var outputWindow = (OutputWindow) window.Object;
+            var outputWindow = (OutputWindow)window.Object;
             OutputWindowPane outputWindowPane = null;
 
             const string outputWindowName = "Output";
@@ -221,13 +219,12 @@ namespace ResolveURVisualStudioPackage
 
         void CreateProgressDialog()
         {
-            var dialogFactory = GetService(typeof(SVsThreadedWaitDialogFactory)) as IVsThreadedWaitDialogFactory;
             IVsThreadedWaitDialog2 progressDialog = null;
-            if (dialogFactory != null)
+            if (GetService(typeof(SVsThreadedWaitDialogFactory)) is IVsThreadedWaitDialogFactory dialogFactory)
                 dialogFactory.CreateInstance(out progressDialog);
 
             if (progressDialog != null && progressDialog.StartWaitDialog(
-                    ResolveUR.Library.Constants.AppName + " Working...",
+                    Library.Constants.AppName + " Working...",
                     "Visual Studio is busy. Cancel ResolveUR by clicking Cancel button",
                     string.Empty,
                     null,
@@ -247,19 +244,19 @@ namespace ResolveURVisualStudioPackage
                 return;
 
             _resolveur.Cancel();
-            _helper.ShowMessageBox(ResolveUR.Library.Constants.AppName + " Status", "Canceled");
+            _helper.ShowMessageBox(Library.Constants.AppName + " Status", "Canceled");
         }
 
         void CreateUiShell()
         {
-            _helper.UiShell = (IVsUIShell) GetService(typeof(SVsUIShell));
+            _helper.UiShell = (IVsUIShell)GetService(typeof(SVsUIShell));
         }
 
         #endregion
 
         #region Resolveur Events
 
-        void resolveur_HasBuildErrorsEvent(string projectName)
+        void Resolveur_HasBuildErrorsEvent(string projectName)
         {
             _helper.ShowMessageBox(
                 "Resolve Unused References",
@@ -268,13 +265,13 @@ namespace ResolveURVisualStudioPackage
             _helper.EndWaitDialog();
         }
 
-        void resolveur_ProjectResolveCompleteEvent()
+        void Resolveur_ProjectResolveCompleteEvent()
         {
             if (RemoveConfirmed())
                 _resolveur.Clean();
         }
 
-        void helper_ResolveurCanceled(object sender, EventArgs e)
+        void Helper_ResolveurCanceled(object sender, EventArgs e)
         {
             _resolveur.Cancel();
         }

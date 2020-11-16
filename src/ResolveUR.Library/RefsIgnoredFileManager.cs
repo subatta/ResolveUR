@@ -20,7 +20,7 @@
             _filePath = filePath;
         }
 
-        public string RefsIgnorePath => $"{Path.GetDirectoryName(_filePath)}\\.refsignored";
+        public static string RefsIgnorePath => $"{Path.GetDirectoryName(_filePath)}\\.refsignored";
 
         public List<XmlNode> NodesToRemove { get; set; }
 
@@ -43,19 +43,21 @@
             }
         }
 
-        public void LaunchRefsFile()
+        public static void LaunchRefsFile()
         {
-            var process = new Process
-            {
-                StartInfo = new ProcessStartInfo
+            using (var process = new Process
                 {
-                    UseShellExecute = true,
-                    FileName = RefsReviewFilePath
+                    StartInfo = new ProcessStartInfo
+                    {
+                        UseShellExecute = true,
+                        FileName = RefsReviewFilePath
+                    }
                 }
-            };
-
-            process.Start();
-            process.WaitForExit();
+            )
+            {
+                process.Start();
+                process.WaitForExit();
+            }
         }
 
         public void ProcessRefsFromFile()
@@ -67,10 +69,10 @@
                 string line;
                 while (!IsNullOrWhiteSpace(line = sr.ReadLine()))
                 {
-                    if (line.StartsWith(new string(IgnoreChar, 3)))
+                    if (line.StartsWith(new string(IgnoreChar, 3), System.StringComparison.CurrentCultureIgnoreCase))
                         continue;
 
-                    if (line.StartsWith(IgnoreChar.ToString()))
+                    if (line.StartsWith(IgnoreChar.ToString(), System.StringComparison.CurrentCultureIgnoreCase))
                         refsIgnored.Add(line);
                     else
                         refsSelectedToRemove.Add(line);
@@ -94,7 +96,7 @@
             NodesToRemove.RemoveAll(x => x == null);
         }
 
-        List<string> LoadIgnoredRefs()
+        static List<string> LoadIgnoredRefs()
         {
             var refsIgnored = new List<string>();
 
@@ -111,7 +113,7 @@
             return refsIgnored;
         }
 
-        void WriteRefsIgnored(IEnumerable<string> list)
+        static void WriteRefsIgnored(IEnumerable<string> list)
         {
             using (var sw = new StreamWriter(RefsIgnorePath))
             {

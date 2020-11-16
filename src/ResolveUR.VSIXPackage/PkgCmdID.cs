@@ -1,7 +1,7 @@
 ﻿// PkgCmdID.cs
 // MUST match PkgCmdID.h
 
-namespace ResolveURVisualStudioPackage
+namespace ResolveUR.VSIXPackage
 {
     static class PkgCmdIdList
     {

@@ -31,9 +31,11 @@
             if (!File.Exists(PackageConfigPath) || _packageConfigDocument != null)
                 return false;
 
-            _packageConfigDocument = new XmlDocument();
-            _packageConfigDocument.Load(PackageConfigPath);
-
+            _packageConfigDocument = new XmlDocument() { XmlResolver = null };
+            StringReader sreader = new StringReader(PackageConfigPath);
+            using( XmlReader reader = XmlReader.Create(sreader, new XmlReaderSettings() { XmlResolver = null }))
+                _packageConfigDocument.Load(reader);
+     
             var packageNodes = _packageConfigDocument.SelectNodes(PackageNode);
             if (packageNodes != null && packageNodes.Count > 0)
                 _packages = new Dictionary<string, XmlNode>();
@@ -81,7 +83,7 @@
             }
         }
 
-        string GetHintPath(XmlNode referenceNode)
+        static string GetHintPath(XmlNode referenceNode)
         {
             var node = referenceNode.ChildNodes.OfType<XmlNode>().FirstOrDefault(x => x.Name == "HintPath");
             return node == null ? string.Empty : node.InnerXml;

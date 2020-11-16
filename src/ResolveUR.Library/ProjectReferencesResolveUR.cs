@@ -76,7 +76,7 @@
             if (_isCancel)
                 return;
 
-            _refsIgnoredFileManager.LaunchRefsFile();
+            RefsIgnoredFileManager.LaunchRefsFile();
 
             ProjectResolveCompleteEvent?.Invoke();
         }
@@ -217,12 +217,15 @@
 
         XmlDocument GetXmlDocument()
         {
-            var doc = new XmlDocument();
-            doc.Load(FilePath);
+            var doc = new XmlDocument() { XmlResolver = null };
+            //StringReader sreader = new StringReader(FilePath);
+            using (XmlReader reader = XmlReader.Create(FilePath, new XmlReaderSettings() { XmlResolver = null }))
+                doc.Load(reader);
+
             return doc;
         }
 
-        XmlNode GetReferenceGroupItemIn(XmlDocument document, string referenceNodeName, int startIndex)
+        static XmlNode GetReferenceGroupItemIn(XmlDocument document, string referenceNodeName, int startIndex)
         {
             var itemGroups = document.SelectNodes(@"//*[local-name()='ItemGroup']");
 
