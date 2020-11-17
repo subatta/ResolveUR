@@ -71,6 +71,7 @@
                 try
                 {
                     _packageConfigDocument.DocumentElement?.RemoveChild(package.Value);
+                    File.SetAttributes(packagePath, FileAttributes.Normal);
                     Directory.Delete(packagePath, true);
                 }
                 catch (DirectoryNotFoundException)

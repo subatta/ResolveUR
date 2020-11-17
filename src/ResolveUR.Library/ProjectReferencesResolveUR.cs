@@ -262,7 +262,10 @@
 
             // clear build log file if it was left out for some reason
             if (File.Exists(logFile))
+            {
+                File.SetAttributes(logFile, FileAttributes.Normal);
                 File.Delete(logFile);
+            }
 
             var status = 0;
             using (var exeProcess = Process.Start(startInfo))
@@ -277,6 +280,7 @@
                 return true;
 
             var s = File.ReadAllText(logFile);
+            File.SetAttributes(logFile, FileAttributes.Normal);
             File.Delete(logFile);
 
             // if build error, the reference cannot be removed
