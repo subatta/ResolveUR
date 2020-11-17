@@ -3,7 +3,7 @@ using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ResolveUR.Library;
 
-namespace Test.ResolveUR.Library
+namespace ResolveUR.Tests
 {
     [TestClass]
     public class TestMsBuildResolveUR
@@ -14,7 +14,7 @@ namespace Test.ResolveUR.Library
             // Get the path
             var msBuildPath = MsBuildResolveUR.FindMsBuildPath();
             
-            // Is that path valid?
+            // Does that file exist?
             Assert.IsNotNull(msBuildPath);
             
             Debug.WriteLine(msBuildPath);

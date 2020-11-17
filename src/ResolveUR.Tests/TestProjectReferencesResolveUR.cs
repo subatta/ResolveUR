@@ -27,7 +27,7 @@ namespace ResolveUR.Tests
                 ResolveurHasBuildErrorsEvent,
                 ResolveurProjectResolveCompleteEvent);
 
-            // TODO: Why does Resolve delete? This should be a separate method!
+            // TODO: We want to test that we are getting a list of items. 
             //_resolveur.Resolve();
         }
 
@@ -39,7 +39,7 @@ namespace ResolveUR.Tests
 
         static void ResolveurProjectResolveCompleteEvent()
         {
-            // Do nothing, this is a test!
+            // TODO: Test that something was done?
         }
     }
 }
