@@ -111,17 +111,25 @@ namespace ResolveUR.Library
                 var allInstances = query.EnumAllInstances();
 
                 string foundPath = "";
+                string selectedFile = "";
+                var creationDate = DateTime.MinValue;
                 var instances = new ISetupInstance[1];
                 allInstances.Next(1, instances, out int fetched);
                 while (fetched > 0)
                 {
                     foundPath = instances[0].GetInstallationPath();
                     allInstances.Next(1, instances, out fetched);
+                    var msBuildPath = Path.Combine(foundPath, "MSBuild");
+                    var file = Directory.EnumerateFiles(msBuildPath, "MSBuild.exe", SearchOption.AllDirectories).First();
+                    File.GetCreationTime(file);
+                    if (File.GetCreationTime(file) > creationDate)
+                    {
+                        selectedFile = file;
+                        creationDate = File.GetCreationTime(file);
+                    }
                 };
 
-                var msBuildPath = Path.Combine(foundPath, "MSBuild");
-
-                return Directory.EnumerateFiles(msBuildPath, "MSBuild.exe", SearchOption.AllDirectories).First();
+                return selectedFile;
             }
             catch (COMException ex) when (ex.HResult == REGDB_E_CLASSNOTREG)
             {
