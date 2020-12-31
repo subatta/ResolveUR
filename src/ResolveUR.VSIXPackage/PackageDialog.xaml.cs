@@ -1,4 +1,4 @@
-﻿namespace ResolveURVisualStudioPackage
+﻿namespace ResolveUR.VSIXPackage
 {
     using System.Windows;
 
@@ -14,13 +14,13 @@
 
         public bool IsResolvePackage { get; set; }
 
-        void btnYes_Click(object sender, RoutedEventArgs e)
+        void BtnYes_Click(object sender, RoutedEventArgs e)
         {
             IsResolvePackage = true;
             Close();
         }
 
-        void btnNo_Click(object sender, RoutedEventArgs e)
+        void BtnNo_Click(object sender, RoutedEventArgs e)
         {
             Close();
         }

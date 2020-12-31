@@ -20,7 +20,7 @@
             _filePath = filePath;
         }
 
-        public string RefsIgnorePath => $"{Path.GetDirectoryName(_filePath)}\\.refsignored";
+        public static string RefsIgnorePath => $"{Path.GetDirectoryName(_filePath)}\\.refsignored";
 
         public List<XmlNode> NodesToRemove { get; set; }
 
@@ -43,19 +43,21 @@
             }
         }
 
-        public void LaunchRefsFile()
+        public static void LaunchRefsFile()
         {
-            var process = new Process
-            {
-                StartInfo = new ProcessStartInfo
+            using (var process = new Process
                 {
-                    UseShellExecute = true,
-                    FileName = RefsReviewFilePath
+                    StartInfo = new ProcessStartInfo
+                    {
+                        UseShellExecute = true,
+                        FileName = RefsReviewFilePath
+                    }
                 }
-            };
-
-            process.Start();
-            process.WaitForExit();
+            )
+            {
+                process.Start();
+                process.WaitForExit();
+            }
         }
 
         public void ProcessRefsFromFile()
@@ -67,56 +69,77 @@
                 string line;
                 while (!IsNullOrWhiteSpace(line = sr.ReadLine()))
                 {
-                    if (line.StartsWith(new string(IgnoreChar, 3)))
+                    if (line.StartsWith(new string(IgnoreChar, 3), System.StringComparison.CurrentCultureIgnoreCase))
+                    {
                         continue;
+                    }
 
-                    if (line.StartsWith(IgnoreChar.ToString()))
+                    if (line.StartsWith(IgnoreChar.ToString(), System.StringComparison.CurrentCultureIgnoreCase))
+                    {
                         refsIgnored.Add(line);
+                    }
                     else
+                    {
                         refsSelectedToRemove.Add(line);
+                    }
                 }
             }
 
             // append distinct ignored refs to .refsignored in project folder.
             var existingRefsIgnored = LoadIgnoredRefs();
             foreach (var existing in existingRefsIgnored)
+            {
                 if (!refsIgnored.Contains(existing))
+                {
                     refsIgnored.Add(existing);
+                }
+            }
+
             WriteRefsIgnored(refsIgnored);
 
             var finalRefsToRemove = refsSelectedToRemove.Except(existingRefsIgnored).ToList();
 
             // trim final node list
             for (var i = 0; i < NodesToRemove.Count; i++)
+            {
                 if (!finalRefsToRemove.Contains(NodesToRemove[i].Attributes[0].Value))
+                {
                     NodesToRemove[i] = null;
+                }
+            }
 
             NodesToRemove.RemoveAll(x => x == null);
         }
 
-        List<string> LoadIgnoredRefs()
+        static List<string> LoadIgnoredRefs()
         {
             var refsIgnored = new List<string>();
 
             if (!File.Exists(RefsIgnorePath))
+            {
                 return refsIgnored;
+            }
 
             using (var sr = new StreamReader(RefsIgnorePath))
             {
                 string line;
                 while (!IsNullOrWhiteSpace(line = sr.ReadLine()))
+                {
                     refsIgnored.Add(line);
+                }
             }
 
             return refsIgnored;
         }
 
-        void WriteRefsIgnored(IEnumerable<string> list)
+        static void WriteRefsIgnored(IEnumerable<string> list)
         {
             using (var sw = new StreamWriter(RefsIgnorePath))
             {
                 foreach (var i in list)
+                {
                     sw.WriteLine(i);
+                }
             }
         }
     }

@@ -1,10 +1,10 @@
 ﻿namespace ResolveUR
 {
+    using Library;
     using System;
     using System.IO;
-    using Library;
 
-    public class Program
+    public static class Program
     {
         static IResolve _resolveur;
 
@@ -18,8 +18,8 @@
 
                 _resolveur = ResolveURFactory.GetResolver(
                     resolveUrOptions,
-                    resolveur_HasBuildErrorsEvent,
-                    resolveur_ProjectResolveCompleteEvent);
+                    Resolveur_HasBuildErrorsEvent,
+                    Resolveur_ProjectResolveCompleteEvent);
 
                 _resolveur.Resolve();
             }
@@ -41,7 +41,7 @@
             }
         }
 
-        static void resolveur_ProjectResolveCompleteEvent()
+        static void Resolveur_ProjectResolveCompleteEvent()
         {
             Console.WriteLine("Continue with removal of references (y/n)? Default is y: ");
             var response = Console.ReadLine();
@@ -49,10 +49,12 @@
             const string yes = "y";
             response = string.IsNullOrWhiteSpace(response) ? yes : response;
             if (string.Equals(response, yes, StringComparison.CurrentCultureIgnoreCase))
+            {
                 _resolveur.Clean();
+            }
         }
 
-        static void resolveur_HasBuildErrorsEvent(string projectName)
+        static void Resolveur_HasBuildErrorsEvent(string projectName)
         {
             Console.WriteLine("{0} has build errors.", projectName);
         }

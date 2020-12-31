@@ -2,9 +2,9 @@
 {
     public class ResolveUROptions
     {
-        public string FilePath;
-        public string MsBuilderPath;
-        public string Platform;
-        public bool ShouldResolvePackages;
+        public string FilePath { get; set; }
+        public string MsBuilderPath { get; set; }
+        public string Platform { get; set; }
+        public bool ShouldResolvePackages { get; set; }
     }
 }

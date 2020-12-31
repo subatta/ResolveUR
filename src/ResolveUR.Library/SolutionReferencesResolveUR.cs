@@ -24,10 +24,14 @@
             foreach (var projectFile in projectFiles)
             {
                 if (_isCancel)
+                {
                     break;
+                }
 
                 if (!File.Exists(projectFile))
+                {
                     continue;
+                }
 
                 _resolveur.FilePath = projectFile;
                 _resolveur.Resolve();
@@ -44,7 +48,7 @@
             _isCancel = true;
         }
 
-        IEnumerable<string> LoadProjects(string solutionPath)
+        static IEnumerable<string> LoadProjects(string solutionPath)
         {
             const string projectRegEx = "Project\\(\"\\{[\\w-]*\\}\"\\) = \"([\\w _]*.*)\", \"(.*\\.(cs|vcx|vb)proj)\"";
             var content = File.ReadAllText(solutionPath);
@@ -58,7 +62,9 @@
                 {
                     var folderName = Path.GetDirectoryName(solutionPath);
                     if (folderName != null)
+                    {
                         projects[i] = Path.Combine(folderName, projects[i]);
+                    }
                 }
 
                 try

@@ -33,7 +33,9 @@
                 _filePath = value;
                 var dirPath = Path.GetDirectoryName(_filePath);
                 if (!ShouldResolvePackage)
+                {
                     return;
+                }
 
                 _packageConfig = new PackageConfig
                 {
@@ -65,18 +67,24 @@
             _nodesToRemove.AddRange(Resolve(Project + Reference));
 
             if (!_nodesToRemove.Any())
+            {
                 return;
+            }
 
             if (_isCancel)
+            {
                 return;
+            }
 
             _refsIgnoredFileManager.NodesToRemove = _nodesToRemove;
             _refsIgnoredFileManager.WriteRefsToFile();
 
             if (_isCancel)
+            {
                 return;
+            }
 
-            _refsIgnoredFileManager.LaunchRefsFile();
+            RefsIgnoredFileManager.LaunchRefsFile();
 
             ProjectResolveCompleteEvent?.Invoke();
         }
@@ -94,7 +102,9 @@
             RemoveNodesInProject(Project + Reference);
 
             if (ShouldResolvePackage)
+            {
                 ResolvePackages(_nodesToRemove);
+            }
         }
 
         List<XmlNode> Resolve(string referenceType)
@@ -109,7 +119,9 @@
                    item.ChildNodes.Count > 0)
             {
                 if (_isCancel)
+                {
                     break;
+                }
 
                 // use string names to match up references, using nodes themselves will mess up references
                 var referenceNodeNames = item.ChildNodes.OfType<XmlNode>().Select(x => x.Attributes?[Include].Value);
@@ -121,7 +133,9 @@
 
             // restore original project
             if (itemIndex > 0)
+            {
                 originalProjectXmlDocument.Save(FilePath);
+            }
 
             return nodesToRemove;
         }
@@ -129,12 +143,16 @@
         void ResolvePackages(IEnumerable<XmlNode> nodesToRemove)
         {
             if (!_packageConfig.Load())
+            {
                 return;
+            }
 
             foreach (var xmlNode in nodesToRemove)
             {
                 if (_isCancel)
+                {
                     break;
+                }
 
                 _packageConfig.Remove(xmlNode);
             }
@@ -155,13 +173,17 @@
             foreach (var referenceNodeName in nodeNames)
             {
                 if (_isCancel)
+                {
                     break;
+                }
 
                 var nodeToRemove = item.ChildNodes.Cast<XmlNode>()
                     .FirstOrDefault(i => i.Attributes != null && i.Attributes[Include].Value == referenceNodeName);
 
                 if (nodeToRemove?.ParentNode == null)
+                {
                     continue;
+                }
 
                 nodeToRemove.ParentNode.RemoveChild(nodeToRemove);
 
@@ -176,7 +198,9 @@
                     item = GetReferenceGroupItemIn(projectXmlDocument, referenceType, itemIndex);
 
                     if (item == null)
+                    {
                         break;
+                    }
                 }
                 else
                 {
@@ -198,17 +222,25 @@
                    item.ChildNodes.Count > 0)
             {
                 if (_isCancel)
+                {
                     break;
+                }
 
                 for (var i = 0; i < item.ChildNodes.Count;)
                 {
                     if (_isCancel)
+                    {
                         break;
+                    }
 
                     if (_nodesToRemove.Any(x => x.Attributes[0].Value == item.ChildNodes[i].Attributes[0].Value))
+                    {
                         item.RemoveChild(item.ChildNodes[i]);
+                    }
                     else
+                    {
                         i++;
+                    }
                 }
             }
 
@@ -217,25 +249,35 @@
 
         XmlDocument GetXmlDocument()
         {
-            var doc = new XmlDocument();
-            doc.Load(FilePath);
+            var doc = new XmlDocument() { XmlResolver = null };
+            using (XmlReader reader = XmlReader.Create(FilePath, new XmlReaderSettings() { XmlResolver = null }))
+            {
+                doc.Load(reader);
+            }
+
             return doc;
         }
 
-        XmlNode GetReferenceGroupItemIn(XmlDocument document, string referenceNodeName, int startIndex)
+        static XmlNode GetReferenceGroupItemIn(XmlDocument document, string referenceNodeName, int startIndex)
         {
             var itemGroups = document.SelectNodes(@"//*[local-name()='ItemGroup']");
 
             if (itemGroups == null || itemGroups.Count == 0)
+            {
                 return null;
+            }
 
             for (var i = startIndex; i < itemGroups.Count; i++)
             {
                 if (!itemGroups[i].HasChildNodes)
+                {
                     return null;
+                }
 
                 if (itemGroups[i].ChildNodes[0].Name == referenceNodeName)
+                {
                     return itemGroups[i];
+                }
             }
 
             return null;
@@ -260,21 +302,29 @@
 
             // clear build log file if it was left out for some reason
             if (File.Exists(logFile))
+            {
+                File.SetAttributes(logFile, FileAttributes.Normal);
                 File.Delete(logFile);
+            }
 
             var status = 0;
             using (var exeProcess = Process.Start(startInfo))
             {
                 exeProcess?.WaitForExit();
                 if (exeProcess != null)
+                {
                     status = exeProcess.ExitCode;
+                }
             }
 
             // open build log to check for errors
             if (!File.Exists(logFile))
+            {
                 return true;
+            }
 
             var s = File.ReadAllText(logFile);
+            File.SetAttributes(logFile, FileAttributes.Normal);
             File.Delete(logFile);
 
             // if build error, the reference cannot be removed

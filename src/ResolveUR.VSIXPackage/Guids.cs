@@ -1,7 +1,7 @@
 ﻿// Guids.cs
 // MUST match guids.h
 
-namespace ResolveURVisualStudioPackage
+namespace ResolveUR.VSIXPackage
 {
     using System;
 

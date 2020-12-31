@@ -1,8 +1,8 @@
 ﻿namespace ResolveUR
 {
+    using Library;
     using System;
     using System.IO;
-    using Library;
 
     class ConsoleArgsResolveUR
     {
@@ -10,11 +10,15 @@
         {
             // at least solution path is required
             if (args == null || args.Length == 0)
+            {
                 throw new ArgumentException("At least one argument, the solution or project file path, is required!");
+            }
 
             // 1st arg must be valid solution path 
             if (!File.Exists(args[0]))
+            {
                 throw new ArgumentException("The first argument, solution or project file path, was not valid!");
+            }
 
             var filePath = args[0];
 
@@ -29,7 +33,9 @@
                      args[2],
                      Constants.X64,
                      StringComparison.InvariantCultureIgnoreCase)))
+            {
                 platform = args[2];
+            }
 
             return new ResolveUROptions
             {
