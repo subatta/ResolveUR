@@ -70,28 +70,43 @@
                 while (!IsNullOrWhiteSpace(line = sr.ReadLine()))
                 {
                     if (line.StartsWith(new string(IgnoreChar, 3), System.StringComparison.CurrentCultureIgnoreCase))
+                    {
                         continue;
+                    }
 
                     if (line.StartsWith(IgnoreChar.ToString(), System.StringComparison.CurrentCultureIgnoreCase))
+                    {
                         refsIgnored.Add(line);
+                    }
                     else
+                    {
                         refsSelectedToRemove.Add(line);
+                    }
                 }
             }
 
             // append distinct ignored refs to .refsignored in project folder.
             var existingRefsIgnored = LoadIgnoredRefs();
             foreach (var existing in existingRefsIgnored)
+            {
                 if (!refsIgnored.Contains(existing))
+                {
                     refsIgnored.Add(existing);
+                }
+            }
+
             WriteRefsIgnored(refsIgnored);
 
             var finalRefsToRemove = refsSelectedToRemove.Except(existingRefsIgnored).ToList();
 
             // trim final node list
             for (var i = 0; i < NodesToRemove.Count; i++)
+            {
                 if (!finalRefsToRemove.Contains(NodesToRemove[i].Attributes[0].Value))
+                {
                     NodesToRemove[i] = null;
+                }
+            }
 
             NodesToRemove.RemoveAll(x => x == null);
         }
@@ -101,13 +116,17 @@
             var refsIgnored = new List<string>();
 
             if (!File.Exists(RefsIgnorePath))
+            {
                 return refsIgnored;
+            }
 
             using (var sr = new StreamReader(RefsIgnorePath))
             {
                 string line;
                 while (!IsNullOrWhiteSpace(line = sr.ReadLine()))
+                {
                     refsIgnored.Add(line);
+                }
             }
 
             return refsIgnored;
@@ -118,7 +137,9 @@
             using (var sw = new StreamWriter(RefsIgnorePath))
             {
                 foreach (var i in list)
+                {
                     sw.WriteLine(i);
+                }
             }
         }
     }

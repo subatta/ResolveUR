@@ -1,11 +1,11 @@
 ﻿namespace ResolveUR.VSIXPackage
 {
-    using System;
-    using System.Diagnostics;
-    using System.Globalization;
     using EnvDTE;
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Shell.Interop;
+    using System;
+    using System.Diagnostics;
+    using System.Globalization;
     using Constants = Library.Constants;
     using Thread = System.Threading.Thread;
 
@@ -70,21 +70,27 @@
                 false,
                 out _dialogCanceled);
             if (_dialogCanceled)
+            {
                 HandleResolveurCancelation(_dialogCanceled);
+            }
         }
 
         public void EndWaitDialog()
         {
             ProgressDialog.EndWaitDialog(out int userCanceled);
             if (userCanceled != 0)
+            {
                 HandleResolveurCancelation(userCanceled != 0);
+            }
         }
 
         void HandleResolveurCancelation(bool userCanceled)
         {
             ResolveurCanceled?.Invoke(null, null);
             if (userCanceled)
+            {
                 ShowMessageBox(Constants.AppName + " Status", "Canceled");
+            }
         }
     }
 }

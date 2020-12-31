@@ -1,7 +1,7 @@
-﻿using System.Diagnostics;
-using System.IO;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ResolveUR.Library;
+using System.Diagnostics;
+using System.IO;
 
 namespace ResolveUR.Tests
 {

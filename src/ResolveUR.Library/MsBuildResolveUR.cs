@@ -1,10 +1,10 @@
-﻿using System;
-using System.Linq;
+﻿using Microsoft.VisualStudio.Setup.Configuration;
+using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Runtime.InteropServices;
-using Microsoft.VisualStudio.Setup.Configuration;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace ResolveUR.Library
 {
@@ -21,7 +21,9 @@ namespace ResolveUR.Library
                 {
                     path = GetX64Path();
                     if (string.IsNullOrWhiteSpace(path))
+                    {
                         path = GetX86Path();
+                    }
                 }
                 else
                 {
@@ -40,7 +42,9 @@ namespace ResolveUR.Library
             }
 
             if (string.IsNullOrWhiteSpace(path))
+            {
                 throw new FileNotFoundException("MsBuild.exe not found on system!");
+            }
 
             return path;
         }
@@ -83,7 +87,9 @@ namespace ResolveUR.Library
             {
                 var msbuildPath = Environment.ExpandEnvironmentVariables(path);
                 if (File.Exists(msbuildPath))
+                {
                     return msbuildPath;
+                }
             }
 
             return null;

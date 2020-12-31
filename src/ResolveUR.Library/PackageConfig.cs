@@ -29,21 +29,32 @@
 
             // map versioned library CsvHelper.2.7.0 to package entries in method
             if (!File.Exists(PackageConfigPath) || _packageConfigDocument != null)
+            {
                 return false;
+            }
 
             _packageConfigDocument = new XmlDocument() { XmlResolver = null };
             using (XmlReader reader = XmlReader.Create(PackageConfigPath, new XmlReaderSettings() { XmlResolver = null }))
+            {
                 _packageConfigDocument.Load(reader);
-     
+            }
+
             var packageNodes = _packageConfigDocument.SelectNodes(PackageNode);
             if (packageNodes != null && packageNodes.Count > 0)
+            {
                 _packages = new Dictionary<string, XmlNode>();
+            }
+
             if (packageNodes == null)
+            {
                 return false;
+            }
 
             foreach (var node in packageNodes.Cast<XmlNode>()
                 .Where(node => node.Attributes != null && node.Attributes[DevelopmentDependency] == null))
+            {
                 _packages.Add($"{node.Attributes[Id].Value}.{node.Attributes[Version].Value}", node);
+            }
 
             // when references are cleaned up later, store package nodes that match hint paths for references that are ok to keep
             // at the conclusion of cleanup, rewrite packages config with saved package nodes to keep
@@ -54,19 +65,25 @@
         public void Remove(XmlNode referenceNode)
         {
             if (referenceNode.ChildNodes.Count == 0)
+            {
                 return;
+            }
 
             var hintPath = GetHintPath(referenceNode);
             foreach (var package in _packages)
             {
                 if (!hintPath.Contains(package.Key))
+                {
                     continue;
+                }
 
                 var packagePath =
                     $"{hintPath.Substring(0, hintPath.IndexOf(package.Key, StringComparison.Ordinal))}{package.Key}";
                 var folderName = Path.GetDirectoryName(FilePath);
                 if (folderName != null)
+                {
                     packagePath = Path.Combine(folderName, packagePath);
+                }
 
                 try
                 {

@@ -1,8 +1,8 @@
 ﻿namespace ResolveUR
 {
+    using Library;
     using System;
     using System.IO;
-    using Library;
 
     public static class Program
     {
@@ -49,7 +49,9 @@
             const string yes = "y";
             response = string.IsNullOrWhiteSpace(response) ? yes : response;
             if (string.Equals(response, yes, StringComparison.CurrentCultureIgnoreCase))
+            {
                 _resolveur.Clean();
+            }
         }
 
         static void Resolveur_HasBuildErrorsEvent(string projectName)

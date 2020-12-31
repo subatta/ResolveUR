@@ -24,14 +24,20 @@
             resolveUr.ProjectResolveCompleteEvent += projectResolveCompleteEvent;
 
             if (options.FilePath.EndsWith(Proj, System.StringComparison.CurrentCultureIgnoreCase))
+            {
                 return resolveUr;
+            }
 
             if (options.FilePath.EndsWith(Sln, System.StringComparison.CurrentCultureIgnoreCase))
+            {
                 return new SolutionReferencesResolveUR(resolveUr);
+            }
 
             if (resolveUr == null)
+            {
                 throw new InvalidDataException(
                     "The file path supplied(arg 0) must either be a solution or project file");
+            }
 
             return resolveUr;
         }

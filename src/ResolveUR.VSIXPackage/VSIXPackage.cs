@@ -1,14 +1,14 @@
-﻿using System;
+﻿using EnvDTE;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using ResolveUR.Library;
+using System;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
-using EnvDTE;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using ResolveUR.Library;
 using Constants = EnvDTE.Constants;
 using Thread = System.Threading.Thread;
 
@@ -81,7 +81,9 @@ namespace ResolveUR.VSIXPackage
                 };
 
                 if (string.IsNullOrEmpty(options.FilePath))
+                {
                     return;
+                }
 
                 _resolveur = ResolveURFactory.GetResolver(
                     options,
@@ -130,11 +132,15 @@ namespace ResolveUR.VSIXPackage
 
             var solutionObject = dte2?.Solution;
             if (solutionObject == null)
+            {
                 return string.Empty;
+            }
 
             var solution = solutionObject.Properties.Item(5).Value.ToString();
             if (!File.Exists(solution))
+            {
                 return string.Empty;
+            }
 
             return solution;
         }
@@ -145,7 +151,9 @@ namespace ResolveUR.VSIXPackage
 
             var activeProjects = (Array)dte2?.ActiveSolutionProjects;
             if (activeProjects == null || activeProjects.Length == 0)
+            {
                 return string.Empty;
+            }
 
             var project = (Project)activeProjects.GetValue(0);
 
@@ -168,7 +176,9 @@ namespace ResolveUR.VSIXPackage
 
             // Add our command handlers for menu (commands must exist in the .vsct file)
             if (!(GetService(typeof(IMenuCommandService)) is OleMenuCommandService mcs))
+            {
                 return;
+            }
 
             // Create the command for the menu item.
             var menuCommandId = new CommandID(
@@ -191,7 +201,9 @@ namespace ResolveUR.VSIXPackage
         void CreateOutputWindow()
         {
             if (!(GetService(typeof(SDTE)) is DTE dte2))
+            {
                 return;
+            }
 
             var window = dte2.Windows.Item(Constants.vsWindowKindOutput);
             var outputWindow = (OutputWindow)window.Object;
@@ -203,25 +215,33 @@ namespace ResolveUR.VSIXPackage
                 if (!outputWindow.OutputWindowPanes.Item(i).Name.Equals(
                     outputWindowName,
                     StringComparison.CurrentCultureIgnoreCase))
+                {
                     continue;
+                }
 
                 outputWindowPane = outputWindow.OutputWindowPanes.Item(i);
                 break;
             }
 
             if (outputWindowPane != null)
+            {
                 return;
+            }
 
             outputWindowPane = outputWindow.OutputWindowPanes.Add(outputWindowName);
             if (outputWindowPane != null)
+            {
                 _helper.OutputWindow = outputWindow;
+            }
         }
 
         void CreateProgressDialog()
         {
             IVsThreadedWaitDialog2 progressDialog = null;
             if (GetService(typeof(SVsThreadedWaitDialogFactory)) is IVsThreadedWaitDialogFactory dialogFactory)
+            {
                 dialogFactory.CreateInstance(out progressDialog);
+            }
 
             if (progressDialog != null && progressDialog.StartWaitDialog(
                     Library.Constants.AppName + " Working...",
@@ -232,16 +252,22 @@ namespace ResolveUR.VSIXPackage
                     0,
                     true,
                     true) == VSConstants.S_OK)
+            {
                 Thread.Sleep(1000);
+            }
 
             _helper.ProgressDialog = progressDialog;
 
             var dialogCanceled = false;
             if (progressDialog != null)
+            {
                 progressDialog.HasCanceled(out dialogCanceled);
+            }
 
             if (!dialogCanceled)
+            {
                 return;
+            }
 
             _resolveur.Cancel();
             _helper.ShowMessageBox(Library.Constants.AppName + " Status", "Canceled");
@@ -268,7 +294,9 @@ namespace ResolveUR.VSIXPackage
         void Resolveur_ProjectResolveCompleteEvent()
         {
             if (RemoveConfirmed())
+            {
                 _resolveur.Clean();
+            }
         }
 
         void Helper_ResolveurCanceled(object sender, EventArgs e)
