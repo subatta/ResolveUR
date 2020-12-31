@@ -69,7 +69,6 @@
     <StartupObject>ResolveUR.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConsoleArgsResolveUR.cs" />

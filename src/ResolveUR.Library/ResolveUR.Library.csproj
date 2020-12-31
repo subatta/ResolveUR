@@ -42,7 +42,6 @@
     <AssemblyOriginatorKeyFile>ResolveUR.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
